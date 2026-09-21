@@ -1,0 +1,54 @@
+<div id="product-modal" class="modal-overlay">
+  <div class="modal-container">
+    <button class="modal-close-btn" aria-label="Fechar Modal">&times;</button>
+
+    <div class="modal-layout">
+      <div class="modal-image-side">
+        <img id="modal-product-img" src="" alt="Produto" />
+      </div>
+
+      <div class="modal-info-side">
+        <span id="modal-product-category" class="modal-category-badge"></span>
+        <h2 id="modal-product-name"></h2>
+        <p id="modal-product-price" class="modal-price"></p>
+
+        <p id="modal-product-description" class="modal-description"></p>
+
+        <hr class="modal-divider" />
+
+        <div class="modal-selector-group">
+          <span class="selector-label"
+            >Cor: <strong id="selected-color-text">-</strong></span
+          >
+          <div id="modal-color-options" class="color-options-grid"></div>
+        </div>
+
+        <div class="modal-selector-group">
+          <span class="selector-label"
+            >Tamanho: <strong id="selected-size-text">-</strong></span
+          >
+          <div id="modal-size-options" class="size-options-grid"></div>
+        </div>
+
+        <p id="modal-stock-status" class="stock-status"></p>
+
+        <div class="modal-actions">
+          <div class="quantity-selector">
+            <button id="btn-qty-minus">-</button>
+            <input
+              type="number"
+              id="modal-qty-input"
+              value="1"
+              min="1"
+              readonly
+            />
+            <button id="btn-qty-plus">+</button>
+          </div>
+          <button id="modal-add-to-cart-btn" class="btn-modal-cart">
+            Adicionar ao Carrinho
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

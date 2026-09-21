@@ -1,0 +1,88 @@
+<main class="home-wrapper">
+  <section class="hero-section">
+    <div class="hero-content">
+      <span class="hero-badge">Nova coleção 2026</span>
+      <h1>Elegância que combina com seu style.</h1>
+      <p>
+        Descubra peças modernas, femininas e exclusivas para transformar seu
+        visual com autenticidade.
+      </p>
+      <div class="hero-actions">
+        <button
+          class="btn-primary"
+          onclick="window.location.href = '../produtos/produtos.html'"
+        >
+          Explorar coleção
+        </button>
+        <button
+          class="btn-secondary"
+          onclick="window.location.href = '../produtos/produtos.html'"
+        >
+          Ver ofertas
+        </button>
+      </div>
+    </div>
+
+    <div class="hero-image">
+      <img
+        src="https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1200"
+        alt="Moda Feminina"
+      />
+    </div>
+  </section>
+
+  <section class="promo-banner">
+    <div>
+      <span>OFERTA EXCLUSIVA</span>
+      <h2>Até 40% OFF na nova coleção</h2>
+      <p>Aproveite descontos especiais em peças selecionadas.</p>
+    </div>
+    <button onclick="window.location.href = '../produtos/produtos.html'">
+      Comprar agora
+    </button>
+  </section>
+
+  <section class="products-section">
+    <div class="section-title">
+      <h2>Destaques da Semana</h2>
+      <a href="../produtos/produtos.html">Ver todos</a>
+    </div>
+    <div id="product-best-seller" class="product-grid"></div>
+
+    <div class="section-title"><h2>Destaques da Semana</h2><a href="/produtos">Ver todos</a></div>
+      <div class="product-grid">
+        {{#each destaques}}
+          <div class="product-card-component">
+            <div class="image-wrapper">
+              <img class="produto-img" src="{{this.imagem}}" alt="{{this.nome}}" />
+              <span class="product-badge">Novo</span>
+            </div>
+            <div class="card-info">
+              <h3 class="produto-nome">{{this.nome}}</h3>
+              <p class="produto-preco">R$ {{this.preco}}</p>
+            </div>
+            <button class="add-btn">Ver Detalhes</button>
+          </div>
+        {{/each}}
+  </div>
+
+    <template id="template-card">
+      <div class="product-card-component">
+        <div
+          class="card-clickable-area open-modal-trigger"
+          style="cursor: pointer"
+        >
+          <div class="image-wrapper">
+            <img class="produto-img" src="" alt="Produto" />
+            <span class="product-badge">Novo</span>
+          </div>
+          <div class="card-info">
+            <h3 class="produto-nome"></h3>
+            <p class="produto-preco"></p>
+          </div>
+        </div>
+        <button class="add-btn">Ver Detalhes</button>
+      </div>
+    </template>
+  </section>
+</main>

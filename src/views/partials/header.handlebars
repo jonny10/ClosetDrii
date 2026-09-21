@@ -1,0 +1,99 @@
+<div class="nav-container">
+  <header id="site-header">
+    <div class="nav-content">
+      <div class="nav-left">
+        <a href="/" class="nav-logo">
+          <img src="/assets/img/logo.png" alt="Closet Drii" />
+          <div class="logo-text">
+            <strong>Closet Drii</strong>
+            <span>Fashion Store</span>
+          </div>
+        </a>
+
+        <nav class="nav-menu" id="navMenu">
+          <a
+            href="/"
+            class="nav-link"
+            data-role="cliente"
+          >
+            Home
+          </a>
+          <a
+            href="/produtos"
+            class="nav-link"
+            data-role="cliente"
+            >Produtos</a
+          >
+          <a
+            href="/cart"
+            class="nav-link"
+            data-role="cliente"
+            >Carrinho</a
+          >
+
+          <a
+            href="/dados"
+            class="nav-link"
+            data-role="admin"
+            style="display: none"
+            >Dados</a
+          >
+          <a
+            href="/catalogo"
+            class="nav-link"
+            data-role="admin"
+            style="display: none"
+            >Catálogo</a
+          >
+          <a
+            href="/vendas"
+            class="nav-link"
+            data-role="admin"
+            style="display: none"
+          >
+            Vendas
+          </a>
+
+          <a
+            href="/contact-admin"
+            class="nav-link"
+            data-role="admin"
+            style="display: none"
+          >
+            Atendimento
+          </a>
+        </nav>
+      </div>
+
+      <div class="nav-right">
+        <div class="guest-actions" data-auth="guest">
+          <a href="/login" class="nav-btn secondary"
+            >Login</a
+          >
+          <a href="/signup" class="nav-btn primary"
+            >Cadastrar-se</a
+          >
+        </div>
+
+        <div
+          class="user-actions"
+          data-auth="user"
+          style="display: none; align-items: center; gap: 16px"
+        >
+          <a
+            href="/profile"
+            class="nav-profile-btn"
+            title="Meu Perfil"
+          >
+            <i class="far fa-user-circle"></i>
+            <span class="user-name">Perfil</span>
+          </a>
+        </div>
+
+        <button class="menu-toggle-btn" id="menuToggle" aria-label="Abrir Menu">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+</div>

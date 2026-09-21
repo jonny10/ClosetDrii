@@ -1,0 +1,286 @@
+/* =========================================================
+   CLOSET DRII • GLOBAL CSS
+========================================================= */
+
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap");
+@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css");
+
+/* ---------------- ROOT VARIABLES ---------------- */
+:root {
+  /* ===== PALETA PRINCIPAL ===== */
+  --primary-rose: #bf5e81;
+  --primary-rose-light: #e9b2b2;
+  --primary-soft: #f9ebea;
+  --accent-gold: #d4af37;
+  --background: #fff8f8;
+  --surface: #ffffff;
+  /* ===== TEXTO ===== */
+  --text-main: #2d2d2d;
+  --text-muted: #777777;
+  --text-light: #999999;
+  /* ===== FEEDBACK ===== */
+  --success: #4caf50;
+  --error: #e74c3c;
+  --warning: #f1c40f;
+  --info: #3498db;
+  /* ===== BORDAS ===== */
+  --border: #f0d6d6;
+  --border-strong: #e2b6b6;
+  /* ===== SOMBRAS ===== */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 12px 30px rgba(0, 0, 0, 0.12);
+  /* ===== RADIUS ===== */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-full: 999px;
+  /* ===== TRANSITIONS ===== */
+  --transition: all 0.25s ease;
+  /* ===== HEADER ===== */
+  --header-height: 80px;
+  /* ===== CONTAINER ===== */
+  --container-width: 1280px;
+}
+
+/* ---------------- RESET ---------------- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--background);
+  color: var(--text-main);
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  overflow-x: hidden; /* ---------------- SCROLLBAR ---------------- */
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #f7f1f1;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--primary-rose-light);
+    border-radius: 20px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-rose);
+  }
+
+  /* ---------------- ELEMENTOS BASE ---------------- */
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+    border: none;
+    outline: none;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  img {
+    width: 100%;
+    display: block;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+    transition: var(--transition);
+  }
+
+  ul {
+    list-style: none;
+  }
+
+  /* ---------------- CONTAINER ---------------- */
+  .container {
+    width: 100%;
+    max-width: var(--container-width);
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ---------------- BOTÕES ---------------- */
+  .btn {
+    border: none;
+    border-radius: var(--radius-full);
+    padding: 14px 24px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+  }
+
+  .btn:active {
+    transform: scale(0.98);
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    transition:
+      transform 0.3s ease,
+      box-shadow 0.3s ease,
+      filter 0.3s ease;
+  }
+
+  .btn-primary:hover {
+    filter: brightness(1.05);
+    box-shadow: 0 16px 32px rgba(191, 94, 129, 0.3);
+    transform: translateY(-2px);
+  }
+
+  .btn-outline {
+    background: transparent;
+    border: 2px solid var(--primary-rose);
+    color: var(--primary-rose);
+  }
+
+  .btn-outline:hover {
+    background: var(--primary-rose);
+    color: white;
+  }
+
+  /* ---------------- INPUTS ---------------- */
+  .input {
+    width: 100%;
+    padding: 14px 18px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    background: white;
+    transition: var(--transition);
+  }
+
+  .input:focus {
+    border-color: var(--primary-rose);
+    box-shadow: 0 0 0 4px rgba(191, 94, 129, 0.12);
+  }
+
+  /* ---------------- CARDS ---------------- */
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* ---------------- BADGES ---------------- */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    border-radius: var(--radius-full);
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .badge-success {
+    background: rgba(76, 175, 80, 0.12);
+    color: var(--success);
+  }
+
+  .badge-error {
+    background: rgba(231, 76, 60, 0.12);
+    color: var(--error);
+  }
+
+  /* ---------------- ALERTAS ---------------- */
+  .msg-error {
+    color: var(--error);
+    font-size: 0.9rem;
+    margin-top: 6px;
+  }
+
+  .msg-success {
+    color: var(--success);
+    font-size: 0.9rem;
+    margin-top: 6px;
+  }
+
+  /* ---------------- ANIMAÇÕES ---------------- */
+  .fade-in {
+    animation: fadeIn 0.4s ease;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ---------------- RESPONSIVIDADE ---------------- */
+  @media (max-width: 1024px) {
+    .grid-4 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    html {
+      font-size: 15px;
+    }
+
+    body {
+      padding-top: var(--header-height);
+    }
+
+    .container {
+      padding: 0 18px;
+    }
+
+    .grid-4,
+    .grid-3,
+    .grid-2 {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 480px) {
+    html {
+      font-size: 14px;
+    }
+
+    .container {
+      padding: 0 14px;
+    }
+
+    .btn {
+      width: 100%;
+    }
+  }
+}

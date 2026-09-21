@@ -1,15 +1,8 @@
-const path = require("path");
-const express = require("express");
-const apiRoutes = require("./routes");
+require("dotenv").config();
+const app = require("./app");
 
-const app = express();
-app.use(express.json());
+const PORT = process.env.PORT || 3000;
 
-app.use(express.static(path.join(__dirname, "..", "public")));
-
-const PORT = 3000;
-
-app.listen(
-    PORT,
-    () => console.log(`Servidor em http://localhost:${PORT}`)
-);
+app.listen(PORT, () => {
+    console.log(`Servidor em http://localhost:${PORT}`);
+});

@@ -1,0 +1,171 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap");
+
+:root {
+  --primary: #bf5e81;
+  --primary-dark: #9f4d6b;
+  --secondary: #cd7068;
+  --bg: #fff7f7;
+  --card: #ffffff;
+  --text: #2b2b2b;
+  --muted: #707070;
+  --border: #f0dcdc;
+  --shadow: 0 12px 30px rgba(191, 94, 129, 0.12);
+  --radius: 28px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Outfit", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden; /* Evita barras de rolagem desnecessárias na tela de erro */
+}
+
+/* CONTAINER PRINCIPAL CENTRALIZADO */
+.error-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* CARD COM GLASSMORPHISM (Estilo Hero da Home) */
+.error-card {
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.9),
+    rgba(255, 255, 255, 0.6)
+  );
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  padding: 60px 40px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  max-width: 600px;
+  width: 100%;
+  text-align: center;
+}
+
+/* ICONE E NUMERO 404 */
+.error-icon-container {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 30px;
+  animation: floatAnimation 4s ease-in-out infinite;
+}
+
+.error-icon-container i {
+  font-size: 5rem;
+  color: rgba(191, 94, 129, 0.15);
+}
+
+.error-number {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: -1px;
+}
+
+/* TEXTOS */
+.error-card h1 {
+  font-size: 2.2rem;
+  color: var(--primary);
+  margin-bottom: 16px;
+  font-weight: 700;
+}
+
+.error-card p {
+  color: var(--muted);
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 40px;
+  max-width: 45ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* BOTOES DE AÇÃO */
+.error-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 16px 28px;
+  border: none;
+  border-radius: 16px;
+  font-weight: 700;
+  font-family: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: 0.3s;
+  display: inline-block;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: white;
+  box-shadow: 0 10px 24px rgba(191, 94, 129, 0.22);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(191, 94, 129, 0.3);
+}
+
+.btn-secondary {
+  background: white;
+  border: 1px solid var(--border);
+  color: var(--primary);
+}
+
+.btn-secondary:hover {
+  background: #faf4f4;
+  border-color: var(--primary);
+}
+
+/* ANIMAÇÃO DE FLUTUAÇÃO */
+@keyframes floatAnimation {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+/* RESPONSIVIDADE */
+@media (max-width: 580px) {
+  .error-card {
+    padding: 40px 24px;
+  }
+
+  .error-card h1 {
+    font-size: 1.8rem;
+  }
+
+  .error-actions {
+    flex-direction: column;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+  }
+}

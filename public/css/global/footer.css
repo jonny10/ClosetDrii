@@ -1,0 +1,239 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+.site-footer {
+  --primary: #BF5E81;
+  --secondary: #CD7068;
+  --bg-footer: #ffffff; /* Fundo do card/footer */
+  --text: #2f2f2f;
+  --muted: #6e6e6e;
+  --border: #f0dcdc;
+  --radius: 28px;
+  
+  font-family: 'Outfit', sans-serif;
+  background-color: var(--bg-footer);
+  border-top: 1px solid var(--border);
+  margin-top: 60px; /* Garante distância segura do conteúdo da página */
+  padding-top: 60px;
+  box-shadow: 0 -10px 30px rgba(191, 94, 129, 0.03);
+}
+
+/* CONTAINER PRINCIPAL DO GRID */
+.footer-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 32px;
+  display: grid;
+  grid-template-columns: 1.5fr repeat(2, 1fr) 1.2fr;
+  gap: 40px;
+}
+
+.footer-column h3 {
+  font-size: 1.1rem;
+  color: var(--primary);
+  font-weight: 700;
+  margin-bottom: 24px;
+  position: relative;
+}
+
+/* LISTA DE LINKS */
+.footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-links li {
+  margin-bottom: 12px;
+}
+
+.footer-links a {
+  color: var(--text);
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: color 0.25s ease;
+}
+
+.footer-links a:hover {
+  color: var(--primary);
+}
+
+/* CUSTOMIZAÇÃO DA COLUNA DA MARCA (LOGO + REDES) */
+.brand-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.footer-logo img {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.brand-column .logo-text strong {
+  font-size: 1.1rem;
+  color: var(--primary);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.brand-column .logo-text span {
+  font-size: .75rem;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+.brand-description {
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  max-width: 30ch;
+}
+
+.footer-socials {
+  display: flex;
+  gap: 12px;
+}
+
+.footer-socials a {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background-color: #fff7f7;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  transition: all 0.25s ease;
+}
+
+.footer-socials a:hover {
+  background-color: var(--primary);
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* FORMAS DE PAGAMENTO E SELOS */
+.payment-methods {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.payment-card {
+  font-size: 1.8rem;
+  color: var(--muted);
+  transition: color 0.2s ease;
+}
+
+.payment-card:hover {
+  color: var(--primary);
+}
+
+.security-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.security-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background-color: #faf4f4;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  width: fit-content;
+}
+
+.security-badge i {
+  color: #4CAF50; /* Verde de sucesso/segurança */
+  font-size: 0.95rem;
+}
+
+.security-badge span {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* RODAPÉ LEGAL / DIREITOS AUTORAIS */
+.footer-bottom {
+  margin-top: 50px;
+  border-top: 1px solid var(--border);
+  background-color: #faf4f4;
+  padding: 24px 32px;
+}
+
+.bottom-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.legal-info {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+/* =========================================================
+   MEDIA QUERIES - RESPONSIVIDADE DO FOOTER
+========================================================= */
+
+/* 💻 TABLETS E LAPTOPS MENORES */
+@media(max-width: 1024px) {
+  .footer-container {
+    grid-template-columns: repeat(2, 1fr); /* Quebra para duas colunas por linha */
+    gap: 40px;
+  }
+}
+
+/* 📱 CELULARES */
+@media(max-width: 600px) {
+  .site-footer {
+    padding-top: 40px;
+  }
+
+  .footer-container {
+    grid-template-columns: 1fr; /* Tudo empilhado em uma única coluna */
+    gap: 32px;
+    padding: 0 20px;
+  }
+
+  .footer-column h3 {
+    margin-bottom: 16px;
+  }
+
+  .brand-description {
+    max-width: 100%;
+  }
+
+  .footer-bottom {
+    padding: 20px;
+  }
+
+  .bottom-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+  }
+}

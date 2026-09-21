@@ -1,0 +1,247 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+.nav-container {
+    --primary: #BF5E81;
+    --primary-dark: #a84b6d;
+    --secondary: #CD7068;
+    --bg-glass: rgba(255, 255, 255, 0.82);
+    --border: rgba(255, 255, 255, 0.45);
+    --text: #2f2f2f;
+    --muted: #6e6e6e;
+    --white: #ffffff;
+    --shadow: 0 10px 30px rgba(191, 94, 129, 0.12);
+    font-family: 'Outfit', sans-serif;
+    z-index: 1000;
+    position: relative;
+}
+
+/* HEADER FIXO BASE */
+.nav-container header {
+     position: fixed;
+     top: 0;
+     left: 50%;
+     transform: translateX(-50%);
+     width: calc(100% - 32px);
+     max-width: 1400px;
+     z-index: 9999;
+     border-radius: 20px;
+     background: var(--bg-glass);
+     backdrop-filter: blur(20px);
+     -webkit-backdrop-filter: blur(20px);
+     border: 1px solid var(--border);
+     box-shadow: var(--shadow);
+     transition: all 0.3s ease;
+ }
+
+/* CONTAINER CONTEÚDO */
+.nav-container .nav-content {
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+}
+
+/* SEÇÃO ESQUERDA */
+.nav-container .nav-left {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+}
+
+/* LOGO */
+.nav-container .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+}
+
+.nav-container .nav-logo img {
+    width: 44px;
+    height: 44px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 2px solid rgba(191, 94, 129, 0.15);
+}
+
+.nav-container .logo-text strong {
+    font-size: 0.95rem;
+    color: var(--primary);
+    font-weight: 800;
+    line-height: 1;
+}
+
+.nav-container .logo-text span {
+    font-size: .72rem;
+    color: var(--muted);
+    margin-top: 3px;
+}
+
+/* NAVEGAÇÃO / LINKS MENU (Desktop) */
+.nav-container .nav-menu {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.nav-container .nav-link {
+    position: relative;
+    padding: 10px 16px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--text);
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: var(--transition);
+}
+
+.nav-container .nav-link:hover {
+    background: rgba(191, 94, 129, 0.06);
+    color: var(--primary);
+}
+
+.nav-container .nav-link.active {
+    background: rgba(191, 94, 129, 0.1);
+    color: var(--primary);
+}
+
+/* SEÇÃO DIREITA (BOTÕES) */
+.nav-container .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.nav-container .guest-actions,
+.nav-container .user-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.nav-container .nav-btn {
+    padding: 10px 18px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    text-decoration: none;
+    font-weight: 700;
+    transition: all 0.25s ease;
+}
+
+.nav-container .nav-btn.secondary {
+    color: var(--primary);
+    background: rgba(191, 94, 129, 0.06);
+}
+
+.nav-container .nav-btn.secondary:hover {
+    background: rgba(191, 94, 129, 0.12);
+}
+
+.nav-container .nav-btn.primary {
+    color: white;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+}
+
+.nav-container .nav-btn.primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(191, 94, 129, 0.22);
+}
+
+/* PERFIL BOTÃO */
+.nav-profile-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text);
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 8px 12px;
+    border-radius: 10px;
+    transition: .2s;
+}
+.nav-profile-btn:hover {
+    color: var(--primary);
+}
+
+/* BOTÃO HAMBURGUER (Oculto no Desktop) */
+.menu-toggle-btn {
+    display: none;
+    background: transparent;
+    color: var(--primary);
+    font-size: 1.3rem;
+    padding: 8px;
+    border-radius: 8px;
+    transition: .2s;
+}
+
+.menu-toggle-btn:hover {
+    background: rgba(191, 94, 129, 0.08);
+}
+
+/* =========================================================
+   MEDIA QUERIES - RESPONSIVIDADE COMPLETA (WEB, TABLET, MOBILE)
+========================================================= */
+
+/* 💻 RECORTE TABLETS E DISPOSITIVOS MENORES (BREAKPOINT CRUCIAL) */
+@media(max-width: 1024px) {
+    
+    /* Ativa o botão hambúrguer visualmente */
+    .menu-toggle-btn {
+        display: block;
+    }
+
+    /* Transforma o menu horizontal em um Drawer Lateral Escondido */
+    .nav-container .nav-menu {
+        position: fixed;
+        top: 0;
+        right: -280px; /* Joga para fora da tela na direita */
+        width: 280px;
+        height: 100vh;
+        background: white;
+        box-shadow: -10px 0 30px rgba(0, 0, 0, 0.05);
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 90px 24px 30px; /* Padding superior abre espaço abaixo do topo do header */
+        gap: 14px;
+        transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        z-index: 9998;
+    }
+
+    /* Classe ativada via JavaScript clique hambúrguer */
+    .nav-container .nav-menu.open {
+        right: 0; /* Desliza o menu para dentro da tela */
+    }
+
+    .nav-container .nav-link {
+        width: 100%;
+        padding: 12px 16px;
+        font-size: 1.05rem;
+    }
+}
+
+/* 📱 RECORTE PARA CELULARES (Telas Pequenas) */
+@media(max-width: 576px) {
+    .nav-container header {
+        width: calc(100% - 16px);
+        top: 8px;
+    }
+    
+    .nav-container .nav-content {
+        height: 64px;
+        padding: 0 16px;
+    }
+
+    .nav-container .logo-text {
+        display: none; /* Esconde o texto da logo em celulares muito pequenos para liberar espaço */
+    }
+
+    .nav-container .nav-btn {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+    }
+
+    .nav-profile-btn .user-name {
+        display: none; /* Deixa apenas o ícone de perfil no topo em telas mobile small */
+    }
+}
