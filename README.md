@@ -46,12 +46,10 @@ ClosetDrii/
 │   ├── js/                  # JS de cliente (interatividade no browser)
 │   └── assets/              # imagens, fontes
 │
-├── database/
-│   ├── migrations/          # migrations do Sequelize
-│   ├── seeders/             # dados iniciais (admin, categorias, produtos)
-│   └── schema.sql           # schema de referência (modelo relacional)
+├── database/                # dump SQL versionado (schema + dados)
+│   ├── closetDrii.sql        # schema das tabelas
+│   └── closetDrii_inserts.sql # dados iniciais (+ demais .sql: triggers, views, etc.)
 │
-├── .sequelizerc             # aponta os caminhos usados pelo sequelize-cli
 ├── .env                     # segredos (fora do versionamento)
 ├── .env.example             # template das variáveis de ambiente
 ├── .gitignore
@@ -65,7 +63,7 @@ ClosetDrii/
 ### Pré-requisitos
 
 - Node.js 18+
-- MySQL em execução
+- MySQL em execução com o banco `closetDrii`
 
 ### Passos
 
@@ -75,12 +73,12 @@ npm install
 
 # 2. Configurar variáveis de ambiente
 cp .env.example .env
-# edite o .env com as credenciais do banco
+# edite o .env com as credenciais do seu MySQL
 
-# 3. Criar o banco e rodar as migrations/seeders
-npx sequelize-cli db:create
-npx sequelize-cli db:migrate
-npx sequelize-cli db:seed:all
+# 3. Criar e popular o banco (dump versionado no repositório)
+mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS closetDrii;"
+mysql -u root -p closetDrii < database/closetDrii.sql
+mysql -u root -p closetDrii < database/closetDrii_inserts.sql
 
 # 4. Subir em modo desenvolvimento
 npm run dev
@@ -92,12 +90,10 @@ A aplicação sobe em `http://localhost:3000`.
 
 ## Scripts
 
-| Comando           | Descrição                             |
-| ----------------- | ------------------------------------- |
-| `npm run dev`     | Sobe o servidor com reload automático |
-| `npm start`       | Sobe o servidor em modo produção      |
-| `npm run migrate` | Roda as migrations pendentes          |
-| `npm run seed`    | Popula o banco com dados iniciais     |
+| Comando         | Descrição                             |
+| --------------- | ------------------------------------- |
+| `npm run dev`   | Sobe o servidor com reload automático |
+| `npm start`     | Sobe o servidor em modo produção      |
 
 ---
 
@@ -119,8 +115,13 @@ Veja `.env.example` para a lista completa. Principais:
 ## Banco de dados
 
 O modelo relacional cobre usuários, endereços, categorias, produtos, variantes de produto,
-vendas e itens de venda. A evolução do schema é feita por **migrations** do Sequelize
-(`database/migrations/`); o `schema.sql` serve como referência do modelo.
+vendas e itens de venda. O schema e os dados iniciais estão versionados em
+`database/closetDrii.sql` e `database/closetDrii_inserts.sql`.
+
+O schema **não** é gerenciado por migrations no momento: os models do Sequelize apenas
+**espelham** as tabelas do dump. Por isso, **não** rode `sequelize.sync({ force: true })`
+nem `{ alter: true }` contra o banco populado — isso pode apagar ou alterar dados. A criação
+das tabelas é feita importando o dump (ver "Como rodar").
 
 ---
 

@@ -1,15 +1,24 @@
-// depois trocar pelo banco de dados utilizando sequelize, por enquanto é só um mock
-async function getDadosHome() {
-    const destaques = [
-        { nome: "Vestido Floral", preco: "129,90", imagem: "/assets/img/sala.png"},
-        { nome: "Blusa de Tricô", preco: "89,90", imagem: "/assets/img/sala.png"},
-        { nome: "Saia Midi", preco: "109,90", imagem: "/assets/img/sala.png" },
-    ];
+const { Produto, Categoria } = require("../models");
 
-    const ofertas = [
-        { nome: "Conjunto Verão", preco: "79,90", imagem: "/assets/img/sala.png"},
-        { nome: "Calça Wide Leg", preco: "99,90", imagem: "/assets/img/sala.png"},
-    ];
+async function getDadosHome() {
+    const produtos = await Produto.findAll({
+        include: { model: Categoria, as: "categoria", attributes: ["id", "nome"] },
+        order: [["created_at", "DESC"]],
+        limit: 8,
+    });
+
+    // converte a instância do Sequelize em objeto simples e formata o que a view precisa
+    const lista = produtos.map((p) => ({
+        id: p.id,
+        nome: p.nome,
+        preco: Number(p.preco).toFixed(2).replace(".", ","), // 129.90 -> "129,90"
+        categoria: p.categoria ? p.categoria.nome : null,
+        imagem: "/assets/img/sala.png", // produtos ainda não tem coluna de imagem
+    }));
+
+    // o banco não tem flag de "destaque"/"oferta"; por ora separo por fatia
+    const destaques = lista.slice(0, 4);
+    const ofertas = lista.slice(4, 8);
 
     return { destaques, ofertas };
 }
