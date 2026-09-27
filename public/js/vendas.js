@@ -1,98 +1,32 @@
-import { protegerRota } from "../../utils/auth-helpers.js";
-import { database } from "../../utils/firebase-config.js";
-import { showSnackbar } from "../../shared/components/snackbar/snackbar.js";
-import {
-  collection,
-  getDocs,
-  doc,
-  updateDoc,
-} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { showSnackbar } from "/js/global/snackbar.js";
 
-// Estados Globais em memória para gerenciamento e filtragem fluida de pedidos
+// Vendas (admin) — painel de pedidos.
+//
+// Proteção de rota (admin) e dados agora são do back-end (Node/Express + Sequelize).
+// Mantida aqui a UI: render em memória, filtros por status. A carga de dados e a
+// mudança de status viram TODO (API/Sequelize).
+
 let vendasGerais = [];
 let usuariosMap = {};
 let itensPorVendaMap = {};
 let filtroStatusAtual = "todos";
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Rota Protegida: Valida a sessão em tempo real com o Firebase Auth
-  protegerRota(async (user) => {
-    // Validação de Autorização: Garante que apenas usuários com nível administrativo acessem o painel
-    const loggedUser = JSON.parse(localStorage.getItem("loggedUser"));
-    if (!loggedUser || loggedUser.perfil !== "admin") {
-      showSnackbar("Acesso negado. Área restrita a administradores.", "error");
-      setTimeout(() => (window.location.href = "../home/home.html"), 2000);
-      return;
-    }
-
-    await inicializarDadosPainel();
-    setupFiltrosEventos();
-  }, "Acesso restrito. Faça login como administrador para gerenciar as vendas.");
+  // TODO (nova stack): proteger a rota no servidor e carregar os dados do back-end.
+  inicializarDadosPainel();
+  setupFiltrosEventos();
 });
 
-// Realiza a carga inicial massiva cruzando os nós do banco relacional plano
+// TODO (nova stack): buscar vendas + itens + variantes + usuários do back-end
+// (idealmente já cruzados/paginados pelo servidor) e popular os estados abaixo.
 async function inicializarDadosPainel() {
-  try {
-    showSnackbar("Carregando base de vendas...", "info");
-
-    const [
-      vendasSnapshot,
-      produtoVendasSnapshot,
-      variantesSnapshot,
-      usuariosSnapshot,
-    ] = await Promise.all([
-      getDocs(collection(database, "vendas")),
-      getDocs(collection(database, "produto_vendas")),
-      getDocs(collection(database, "produto_variantes")),
-      getDocs(collection(database, "usuarios")),
-    ]);
-
-    // Dicionário O(1) para mapear dados cadastrais dos clientes
-    usuariosSnapshot.forEach((d) => (usuariosMap[d.id] = d.data()));
-
-    // Dicionário O(1) para resolução de SKUs de variantes
-    const variantesMap = {};
-    variantesSnapshot.forEach((d) => (variantesMap[d.id] = d.data()));
-
-    // Indexa as linhas da tabela pivot produto_vendas agrupando-as por 'venda_id'
-    itensPorVendaMap = {};
-    produtoVendasSnapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      const vendaId = data.venda_id;
-
-      if (!itensPorVendaMap[vendaId]) itensPorVendaMap[vendaId] = [];
-
-      const dadosVariante = variantesMap[data.produto_variante_id] || {};
-
-      itensPorVendaMap[vendaId].push({
-        quantidade: data.quantidade,
-        valorTotalItem: data.valor,
-        cor: dadosVariante.cor || "Padrão",
-        tamanho: dadosVariante.tamanho || "U",
-        imagem_url: dadosVariante.imagem_url || "../../assets/img/logo.png",
-        nome: dadosVariante.cor
-          ? `Peça Loja ${dadosVariante.cor}`
-          : "Look Closet Drii",
-      });
-    });
-
-    // Mapeia o cabeçalho de vendas para o array de memória
-    vendasGerais = [];
-    vendasSnapshot.forEach((docSnap) => {
-      vendasGerais.push({ id: docSnap.id, ...docSnap.data() });
-    });
-
-    // Ordenação Cronológica Reversa (Pedidos mais novos no topo) baseado na PK numérica
-    vendasGerais.sort((a, b) => Number(b.id) - Number(a.id));
-
-    aplicarFiltroEHRender();
-  } catch (error) {
-    console.error("❌ Erro ao inicializar painel admin:", error);
-    showSnackbar("Falha de comunicação com o Firestore.", "error");
-  }
+  vendasGerais = [];
+  usuariosMap = {};
+  itensPorVendaMap = {};
+  aplicarFiltroEHRender();
 }
 
-// Filtra a base local estática em cache evitando requisições redundantes de rede
+// Filtra a base local em cache
 function aplicarFiltroEHRender() {
   const container = document.getElementById("admin-orders-container");
   const emptyMessage = document.getElementById("no-orders-message");
@@ -120,7 +54,7 @@ function aplicarFiltroEHRender() {
   renderizarVendasPainel(vendasFiltradas, container);
 }
 
-// Renderização via Fragmento Atômico para impedir engasgos visuais por múltiplos reflows do DOM
+// Renderização via fragmento atômico
 function renderizarVendasPainel(lista, container) {
   const cardTemplate = document.getElementById("template-admin-order-card");
   const itemTemplate = document.getElementById("template-admin-order-item");
@@ -132,19 +66,13 @@ function renderizarVendasPainel(lista, container) {
   lista.forEach((venda) => {
     const cardClone = cardTemplate.content.cloneNode(true);
     const vendaId = venda.id;
-    const cliente = usuariosMap[venda.usuario_id] || {
-      nome: "Cliente Desconhecido",
-    };
+    const cliente = usuariosMap[venda.usuario_id] || { nome: "Cliente Desconhecido" };
 
-    cardClone.querySelector(".order-id").textContent =
-      `#${vendaId.padStart(4, "0")}`;
+    cardClone.querySelector(".order-id").textContent = `#${String(vendaId).padStart(4, "0")}`;
     cardClone.querySelector(".order-client-name").textContent = cliente.nome;
     cardClone.querySelector(".order-total-price").textContent = Number(
       venda.valor_total,
-    ).toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    });
+    ).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
     const statusBadge = cardClone.querySelector(".order-status-badge");
     statusBadge.textContent = venda.status;
@@ -153,9 +81,7 @@ function renderizarVendasPainel(lista, container) {
     const selectStatus = cardClone.querySelector(".status-change-select");
     selectStatus.value = venda.status.toLowerCase();
 
-    const itemsListContainer = cardClone.querySelector(
-      ".order-products-rows-list",
-    );
+    const itemsListContainer = cardClone.querySelector(".order-products-rows-list");
     const produtosDessaVenda = itensPorVendaMap[vendaId] || [];
 
     produtosDessaVenda.forEach((item) => {
@@ -164,20 +90,15 @@ function renderizarVendasPainel(lista, container) {
       itemClone.querySelector(".cart-cor").textContent = item.cor;
       itemClone.querySelector(".cart-tamanho").textContent = item.tamanho;
       itemClone.querySelector(".qty-count").textContent = item.quantidade;
-      itemClone.querySelector(".cart-img").src = item.imagem_url;
+      itemClone.querySelector(".cart-img").src = item.imagem_url || "/assets/img/logo.png";
       itemClone.querySelector(".cart-subtotal-item").textContent = Number(
         item.valorTotalItem,
-      ).toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-      });
+      ).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
       itemsListContainer.appendChild(itemClone);
     });
 
-    // Observa e dispara mutações imediatas de status no dropdown
     selectStatus.addEventListener("change", async (e) => {
-      const novoStatus = e.target.value;
-      await modificarStatusNoBanco(vendaId, novoStatus);
+      await modificarStatusPedido(vendaId, e.target.value);
     });
 
     fragmentoVisual.appendChild(cardClone);
@@ -187,29 +108,18 @@ function renderizarVendasPainel(lista, container) {
   container.appendChild(fragmentoVisual);
 }
 
-// Atualiza o documento específico na coleção "vendas" e sincroniza o cache local
-async function modificarStatusNoBanco(vendaId, novoStatus) {
-  try {
-    const vendaRef = doc(database, "vendas", vendaId);
-    await updateDoc(vendaRef, {
-      status: novoStatus,
-      updated_at: new Date().toISOString(),
-    });
+// TODO (nova stack): atualizar o status via API (PATCH /admin/vendas/:id).
+async function modificarStatusPedido(vendaId, novoStatus) {
+  console.log("Alteração de status (pendente integração):", { vendaId, novoStatus });
 
-    showSnackbar(
-      `Status do pedido #${vendaId} alterado para ${novoStatus.toUpperCase()}!`,
-      "success",
-    );
+  const vendaLocal = vendasGerais.find((v) => v.id === vendaId);
+  if (vendaLocal) vendaLocal.status = novoStatus;
 
-    // Mutação reativa no estado em memória para evitar um re-fetch total da base no Firestore
-    const vendaLocal = vendasGerais.find((v) => v.id === vendaId);
-    if (vendaLocal) vendaLocal.status = novoStatus;
-
-    aplicarFiltroEHRender();
-  } catch (error) {
-    console.error("Erro ao alterar status:", error);
-    showSnackbar("Não foi possível salvar a alteração de status.", "error");
-  }
+  showSnackbar(
+    `Status do pedido #${vendaId} alterado localmente (pendente salvar no back-end).`,
+    "success",
+  );
+  aplicarFiltroEHRender();
 }
 
 function setupFiltrosEventos() {

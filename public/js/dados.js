@@ -1,116 +1,38 @@
-import { protegerRota } from "../../utils/auth-helpers.js";
-import { database } from "../../utils/firebase-config.js";
-import { showSnackbar } from "../../shared/components/snackbar/snackbar.js";
-import {
-  collection,
-  getDocs,
-} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { showSnackbar } from "/js/global/snackbar.js";
+
+// Dashboard (admin) — KPIs e ranking de produtos.
+//
+// Proteção de rota (admin) e cálculo das métricas agora são do back-end
+// (Node/Express + Sequelize). O ideal é o servidor computar os KPIs (via queries/
+// views SQL) e entregá-los prontos. Mantida aqui apenas a INJEÇÃO na tela.
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Rota Protegida: Valida privilégio de administrador antes de ler os faturamentos
-  protegerRota(async (user) => {
-    const dadosSessao = JSON.parse(localStorage.getItem("loggedUser"));
-    if (!dadosSessao || dadosSessao.perfil !== "admin") {
-      showSnackbar(
-        "Acesso negado. Painel restrito a administradores.",
-        "error",
-      );
-      setTimeout(() => (window.location.href = "../home/home.html"), 2000);
-      return;
-    }
+  // TODO (nova stack): proteger a rota no servidor e carregar as métricas do back-end.
+  processarMetricasDashboard();
 
-    await processarMetricasDashboard();
-
-    document
-      .getElementById("btn-refresh-data")
-      ?.addEventListener("click", async () => {
-        await processarMetricasDashboard();
-      });
-  }, "Acesso restrito. Faça login como administrador.");
+  document
+    .getElementById("btn-refresh-data")
+    ?.addEventListener("click", () => processarMetricasDashboard());
 });
 
+// TODO (nova stack): buscar as métricas já computadas do back-end
+//   (ex.: GET /admin/dashboard) e chamar InjetarDadosTela com os valores reais.
 async function processarMetricasDashboard() {
-  try {
-    showSnackbar("Processando cubo de dados analíticos...", "info");
+  // Valores zerados até a integração com a API.
+  const faturamentoTotal = 0;
+  const totalPedidos = 0;
+  const ticketMedio = 0;
+  const totalPecasVendidas = 0;
+  const rankingOrdenado = [];
 
-    const [vendasSnap, prodVendasSnap, produtosSnap, variantesSnap] =
-      await Promise.all([
-        getDocs(collection(database, "vendas")),
-        getDocs(collection(database, "produto_vendas")),
-        getDocs(collection(database, "produtos")),
-        getDocs(collection(database, "produto_variantes")),
-      ]);
-
-    // 1. Dicionários O(1) de mapeamento relacional
-    const produtosMap = {};
-    produtosSnap.forEach((d) => {
-      produtosMap[d.id] = d.data().nome;
-    });
-
-    const variantesProdIdMap = {};
-    variantesSnap.forEach((d) => {
-      variantesProdIdMap[d.id] = d.data().produto_id;
-    });
-
-    // 2. Processamento dos KPIs de Faturamento e Pedidos
-    let faturamentoTotal = 0;
-    let totalPedidos = 0;
-
-    vendasSnap.forEach((docSnap) => {
-      const venda = docSnap.data();
-      // Considera apenas vendas que não foram canceladas/pendentes se preferir, ou pega a receita bruta global
-      faturamentoTotal += Number(venda.valor_total || 0);
-      totalPedidos++;
-    });
-
-    const ticketMedio = totalPedidos > 0 ? faturamentoTotal / totalPedidos : 0;
-
-    // 3. Processamento de Peças e Consolidação de Ranking por Produto
-    let totalPecasVendidas = 0;
-    const acumuloVendasPorLook = {}; // chave: produto_id -> valor: { qtd, receita }
-
-    prodVendasSnap.forEach((docSnap) => {
-      const itemVenda = docSnap.data();
-      const qtd = Number(itemVenda.quantidade || 0);
-      const valorTotalItem = Number(itemVenda.valor || 0);
-
-      totalPecasVendidas += qtd;
-
-      // Resgata o id do produto pai através do mapa da variante
-      const produtoId = variantesProdIdMap[itemVenda.produto_variante_id];
-      if (produtoId) {
-        if (!acumuloVendasPorLook[produtoId]) {
-          acumuloVendasPorLook[produtoId] = { quantidade: 0, receita: 0 };
-        }
-        acumuloVendasPorLook[produtoId].quantidade += qtd;
-        acumuloVendasPorLook[produtoId].receita += valorTotalItem;
-      }
-    });
-
-    // 4. Montagem e Ordenação do Ranking (Top Looks)
-    const rankingOrdenado = Object.keys(acumuloVendasPorLook).map((prodId) => ({
-      id: prodId,
-      nome: produtosMap[prodId] || `Look Removido #${prodId}`,
-      quantidade: acumuloVendasPorLook[prodId].quantidade,
-      receita: acumuloVendasPorLook[prodId].receita,
-    }));
-
-    // Ordena do mais vendido para o menos vendido
-    rankingOrdenado.sort((a, b) => b.quantidade - a.quantidade);
-
-    // 5. Atualização da UI
-    InjetarDadosTela(
-      faturamentoTotal,
-      totalPedidos,
-      ticketMedio,
-      totalPecasVendidas,
-      rankingOrdenado,
-    );
-    showSnackbar("Métricas consolidadas com sucesso!", "success");
-  } catch (error) {
-    console.error("❌ Erro ao compilar cubo analítico:", error);
-    showSnackbar("Falha técnica ao calcular dados gerenciais.", "error");
-  }
+  InjetarDadosTela(
+    faturamentoTotal,
+    totalPedidos,
+    ticketMedio,
+    totalPecasVendidas,
+    rankingOrdenado,
+  );
+  showSnackbar("Métricas ainda não integradas ao back-end.", "info");
 }
 
 function InjetarDadosTela(faturamento, pedidos, ticket, pecas, ranking) {
@@ -133,7 +55,6 @@ function InjetarDadosTela(faturamento, pedidos, ticket, pecas, ranking) {
 
   const fragment = document.createDocumentFragment();
 
-  // Exibe no máximo o Top 10 looks de alta performance
   ranking.slice(0, 10).forEach((item, index) => {
     const tr = document.createElement("tr");
     const posicao = index + 1;

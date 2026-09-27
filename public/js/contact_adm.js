@@ -1,52 +1,30 @@
-import { protegerRota } from "../../utils/auth-helpers.js";
-import { database } from "../../utils/firebase-config.js";
-import { showSnackbar } from "../../shared/components/snackbar/snackbar.js";
-import {
-  collection,
-  getDocs,
-  doc,
-  updateDoc,
-} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { showSnackbar } from "/js/global/snackbar.js";
 
-// Cache volátil local para controle de concorrência e renderização reativa
+// Painel admin de mensagens de contato.
+//
+// Proteção de rota (admin) e acesso a dados agora são do back-end:
+//   - A rota deve ser protegida por middleware no servidor (Express) — não mais no cliente.
+//   - As mensagens devem vir do servidor (renderizadas via Handlebars OU por uma API).
+//
+// Mantida aqui toda a lógica de FRONT (render em memória, filtros por aba). A leitura
+// e a atualização de status no banco viram TODO (Sequelize via API).
+
+// Cache volátil local para renderização reativa (populado pelo servidor/API)
 let mensagensCache = [];
-let filtroStatusAtual = "pendentes";// Controla a aba ativa ("pendentes" ou "respondidas")
+let filtroStatusAtual = "pendentes"; // Controla a aba ativa ("pendentes" ou "respondidas")
 
 document.addEventListener("DOMContentLoaded", () => {
-  protegerRota(async (user) => {
-    const dadosSessao = JSON.parse(localStorage.getItem("loggedUser"));
-    if (!dadosSessao || dadosSessao.perfil !== "admin") {
-      showSnackbar(
-        "Acesso negado. Painel restrito a administradores.",
-        "error",
-      );
-      setTimeout(() => (window.location.href = "../home/home.html"), 2000);
-      return;
-    }
-
-    await carregarMensagensBanco();
-    setupFiltrosEventos(); // Inicializa os ouvintes das abas
-  }, "Acesso restrito. Faça login como administrador.");
+  // TODO (nova stack): carregar as mensagens do back-end e popular `mensagensCache`.
+  //   Ex.: const resp = await fetch("/admin/contatos"); mensagensCache = await resp.json();
+  //   (ou receber os dados já renderizados/injetados pelo servidor via Handlebars).
+  carregarMensagens();
+  setupFiltrosEventos();
 });
 
-async function carregarMensagensBanco() {
-  try {
-    showSnackbar("Buscando mensagens do servidor...", "info");
-    const snapshot = await getDocs(collection(database, "contatos"));
-
-    mensagensCache = [];
-    snapshot.forEach((docSnap) => {
-      mensagensCache.push({ id: docSnap.id, ...docSnap.data() });
-    });
-
-    mensagensCache.sort(
-      (a, b) => new Date(b.created_at) - new Date(a.created_at),
-    );
-    renderizarPainelMensagens();
-  } catch (error) {
-    console.error("❌ Erro ao ler mensagens de contatos no Firestore:", error);
-    showSnackbar("Falha de conexão ao carregar a caixa de entrada.", "error");
-  }
+async function carregarMensagens() {
+  // TODO (nova stack): substituir por chamada real à API/back-end.
+  mensagensCache = [];
+  renderizarPainelMensagens();
 }
 
 // Renderiza a interface filtrada em memória baseado na aba ativa (Pendentes vs Respondidas)
@@ -58,7 +36,6 @@ function renderizarPainelMensagens() {
 
   if (!container || !template) return;
 
-  // Filtra dinamicamente baseado na aba selecionada no painel
   const mensagensFiltradas = mensagensCache.filter((m) => {
     const isRespondida = m.status === "respondido" || m.respondida === true;
     return filtroStatusAtual === "respondidas" ? isRespondida : !isRespondida;
@@ -70,7 +47,6 @@ function renderizarPainelMensagens() {
     container.innerHTML = "";
     if (emptyState) {
       emptyState.style.display = "flex";
-      // Customiza o texto do estado vazio dependendo da aba
       emptyState.querySelector("p").textContent =
         filtroStatusAtual === "respondidas"
           ? "Você ainda não respondeu nenhuma mensagem de contato."
@@ -105,7 +81,6 @@ function renderizarPainelMensagens() {
     const footerElement = clone.querySelector(".message-footer");
     const btnRead = clone.querySelector(".btn-read-action");
 
-    // Se a mensagem já foi respondida, esconde o botão de ação do rodapé
     if (filtroStatusAtual === "respondidas") {
       if (footerElement) footerElement.style.display = "none";
     } else {
@@ -122,30 +97,18 @@ function renderizarPainelMensagens() {
 }
 
 async function marcarMensagemRespondida(documentId, botaoAlvo) {
-  try {
-    if (botaoAlvo) botaoAlvo.disabled = true;
-    const contatoRef = doc(database, "contatos", String(documentId));
+  if (botaoAlvo) botaoAlvo.disabled = true;
 
-    await updateDoc(contatoRef, {
-      status: "respondido",
-      respondida: true,
-      updated_at: new Date().toISOString(),
-    });
-
-    showSnackbar("Mensagem arquivada como respondida!", "success");
-
-    const mensagemLocal = mensagensCache.find((m) => m.id === documentId);
-    if (mensagemLocal) {
-      mensagemLocal.status = "respondido";
-      mensagemLocal.respondida = true;
-    }
-
-    renderizarPainelMensagens();
-  } catch (error) {
-    console.error("❌ Erro ao atualizar status:", error);
-    showSnackbar("Erro de rede ao salvar alteração.", "error");
-    if (botaoAlvo) botaoAlvo.disabled = false;
+  // TODO (nova stack): atualizar o status no back-end.
+  //   Ex.: await fetch(`/admin/contatos/${documentId}/responder`, { method: "PATCH" });
+  const mensagemLocal = mensagensCache.find((m) => m.id === documentId);
+  if (mensagemLocal) {
+    mensagemLocal.status = "respondido";
+    mensagemLocal.respondida = true;
   }
+
+  showSnackbar("Mensagem marcada como respondida (pendente persistir no back-end).", "success");
+  renderizarPainelMensagens();
 }
 
 // Configura a troca de estado visual e lógico ao clicar nos chips

@@ -1,9 +1,10 @@
-import { auth } from "../../../utils/firebase-config.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-
 /**
- * Inicializa o Header orquestrando classes ativas, delegação de acessos baseada
- * no Firebase Auth e controle do menu responsivo (hambúrguer).
+ * Header — interatividade de front-end.
+ *
+ * Autenticação/RBAC: a decisão de quais itens do menu exibir
+ * (visitante x cliente x admin) agora é feita no SERVIDOR, na view (Handlebars),
+ * via `{{#if user}}` / `{{#if user.isAdmin}}`. Este arquivo cuida apenas do
+ * comportamento visual: link ativo e menu mobile (hambúrguer).
  */
 export function inicializarHeader() {
   const container = document.querySelector(".nav-container");
@@ -21,66 +22,12 @@ export function inicializarHeader() {
     }
   });
 
-  if (
-    caminhoAtual === "/" ||
-    caminhoAtual.endsWith("/index.html") ||
-    caminhoAtual.includes("/home/")
-  ) {
-    const homeLink = container.querySelector('.nav-link[href*="home.html"]');
+  if (caminhoAtual === "/") {
+    const homeLink = container.querySelector('.nav-link[href="/"]');
     if (homeLink) homeLink.classList.add("active");
   }
 
-  // 2. Elementos de Controle de Estado e Nível de Acesso (RBAC)
-  const userNameSpan = container.querySelector(".user-name");
-  const guestElems = container.querySelectorAll('[data-auth="guest"]');
-  const userElems = container.querySelectorAll('[data-auth="user"]');
-
-  // Seletores mapeados com base nos novos escopos de páginas (Admin vs Cliente)
-  const clientLinks = container.querySelectorAll(
-    '.nav-link[data-role="cliente"]',
-  );
-  const adminLinks = container.querySelectorAll('.nav-link[data-role="admin"]');
-
-  // 3. Observer Assíncrono do Firebase Auth para chaveamento de links do Menu
-  onAuthStateChanged(auth, (user) => {
-    const isLoggedIn = !!user;
-
-    // Altera blocos de login/logout genéricos
-    guestElems.forEach(
-      (el) => (el.style.display = isLoggedIn ? "none" : "flex"),
-    );
-    userElems.forEach(
-      (el) => (el.style.display = isLoggedIn ? "flex" : "none"),
-    );
-
-    if (isLoggedIn) {
-      const loggedUserRaw = localStorage.getItem("loggedUser");
-
-      if (loggedUserRaw) {
-        const dadosUsuario = JSON.parse(loggedUserRaw);
-        const isAdmin = dadosUsuario.perfil === "admin";
-
-        // Exibe estritamente o menu correspondente ao nível de privilégio
-        clientLinks.forEach(
-          (el) => (el.style.display = isAdmin ? "none" : "flex"),
-        );
-        adminLinks.forEach(
-          (el) => (el.style.display = isAdmin ? "flex" : "none"),
-        );
-      }
-
-      if (userNameSpan && user) {
-        userNameSpan.textContent = user.displayName || user.email.split("@")[0];
-      }
-    } else {
-      // Fallback de Segurança: Deslogado força a visualização apenas do menu institucional de cliente
-      clientLinks.forEach((el) => (el.style.display = "flex"));
-      adminLinks.forEach((el) => (el.style.display = "none"));
-      if (userNameSpan) userNameSpan.textContent = "Perfil";
-    }
-  });
-
-  // 4. Controle do Menu Mobile e Interceptação de Cliques Externos
+  // 2. Controle do Menu Mobile e Interceptação de Cliques Externos
   const menuToggle = document.getElementById("menuToggle");
   const navMenu = document.getElementById("navMenu");
 
@@ -112,3 +59,6 @@ export function inicializarHeader() {
     });
   }
 }
+
+// O header é global (carregado no layout em todas as páginas), então auto-inicializa.
+document.addEventListener("DOMContentLoaded", inicializarHeader);

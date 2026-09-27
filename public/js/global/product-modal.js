@@ -1,27 +1,19 @@
 import { showSnackbar } from "/js/global/snackbar.js";
-// 🌟 NOVO IMPORT: Conecta o modal com a lógica real de persistência do carrinho
-import { adicionarAoCarrinho } from "../../../pages/cart/cart.js"; // Certifique-se de que o caminho das pastas bate no seu projeto
+// TODO (nova stack): integrar com o módulo de carrinho do back-end (Node/Sequelize).
+// O carrinho ainda não foi implementado no novo projeto — ver handleAddToCart abaixo.
+// import { adicionarAoCarrinho } from "<modulo-de-carrinho>";
 
 let currentProduct = null;
 let selectedColor = null;
 let selectedSize = null;
 let selectedQty = 1;
 
-// Injeta automaticamente o HTML do modal na página assim que o script é importado
-async function initModal() {
-  if (document.getElementById("product-modal")) return;
-
-  try {
-    const response = await fetch(
-      "../../shared/components/product-modal/product-modal.html",
-    );
-    const html = await response.text();
-
-    document.body.insertAdjacentHTML("beforeend", html);
-    setupModalEvents();
-  } catch (error) {
-    console.error("Erro ao carregar o componente global de modal:", error);
-  }
+// O HTML do modal é injetado pelo servidor como partial do Handlebars
+// (partials/product-modal.handlebars, incluído no layout). Aqui só ligamos os eventos.
+function initModal() {
+  const modal = document.getElementById("product-modal");
+  if (!modal) return; // partial não presente nesta página
+  setupModalEvents();
 }
 
 function setupModalEvents() {
@@ -65,51 +57,52 @@ function closeModal() {
 }
 
 export function openProductModal(produto) {
-    currentProduct = produto;
-    selectedQty = 1;
-    
-    const inputQty = document.getElementById('modal-qty-input');
-    if (inputQty) inputQty.value = 1;
+  currentProduct = produto;
+  selectedQty = 1;
 
-    // Popula dados básicos
-    document.getElementById('modal-product-name').textContent = produto.nome;
-    document.getElementById('modal-product-category').textContent = produto.categoria || 'Moda Feminina';
-    
-    const precoNum =
-      typeof produto.preco === "number"
-        ? produto.preco
-        : parseFloat(produto.preco.replace(/[^\d.,]/g, "").replace(",", "."));
-    document.getElementById("modal-product-price").textContent =
-      precoNum.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  const inputQty = document.getElementById("modal-qty-input");
+  if (inputQty) inputQty.value = 1;
 
-    document.getElementById("modal-product-description").textContent =
-      produto.descricao || "Nenhuma descrição disponível.";
+  // Popula dados básicos
+  document.getElementById("modal-product-name").textContent = produto.nome;
+  document.getElementById("modal-product-category").textContent =
+    produto.categoria || "Moda Feminina";
 
-    const listaVariantes = produto.variantes || produto.produto_variantes || [];
+  const precoNum =
+    typeof produto.preco === "number"
+      ? produto.preco
+      : parseFloat(produto.preco.replace(/[^\d.,]/g, "").replace(",", "."));
+  document.getElementById("modal-product-price").textContent =
+    precoNum.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-    if (listaVariantes.length === 0) {
-      console.warn(
-        `O produto "${produto.nome}" não possui nenhuma variante cadastrada.`,
-      );
-      document.getElementById("modal-color-options").innerHTML =
-        '<p class="stock-status">Variações indisponíveis</p>';
-      document.getElementById("modal-size-options").innerHTML = "";
-      document.getElementById("modal-stock-status").textContent =
-        "Fora de estoque";
-      document.getElementById("modal-add-to-cart-btn").disabled = true;
+  document.getElementById("modal-product-description").textContent =
+    produto.descricao || "Nenhuma descrição disponível.";
 
-      document.getElementById("product-modal").classList.add("active");
-      return;
-    }
+  const listaVariantes = produto.variantes || produto.produto_variantes || [];
 
-    currentProduct.variantes = listaVariantes;
+  if (listaVariantes.length === 0) {
+    console.warn(
+      `O produto "${produto.nome}" não possui nenhuma variante cadastrada.`,
+    );
+    document.getElementById("modal-color-options").innerHTML =
+      '<p class="stock-status">Variações indisponíveis</p>';
+    document.getElementById("modal-size-options").innerHTML = "";
+    document.getElementById("modal-stock-status").textContent =
+      "Fora de estoque";
+    document.getElementById("modal-add-to-cart-btn").disabled = true;
 
-    const coresUnicas = [...new Set(listaVariantes.map(v => v.cor))];
-    buildColorSelectors(coresUnicas);
+    document.getElementById("product-modal").classList.add("active");
+    return;
+  }
 
-    selectColor(coresUnicas[0]);
+  currentProduct.variantes = listaVariantes;
 
-    document.getElementById('product-modal').classList.add('active');
+  const coresUnicas = [...new Set(listaVariantes.map((v) => v.cor))];
+  buildColorSelectors(coresUnicas);
+
+  selectColor(coresUnicas[0]);
+
+  document.getElementById("product-modal").classList.add("active");
 }
 
 function buildColorSelectors(cores) {
@@ -139,8 +132,7 @@ function selectColor(cor) {
     document.getElementById("modal-product-img").src =
       variantesDaCor[0].imagem_url;
   } else {
-    document.getElementById("modal-product-img").src =
-      "../../assets/img/logo.png";
+    document.getElementById("modal-product-img").src = "/assets/img/logo.png";
   }
 
   buildSizeSelectors(variantesDaCor);
@@ -149,7 +141,6 @@ function selectColor(cor) {
   if (primeiroComEstoque) {
     selectSize(primeiroComEstoque.tamanho);
   } else {
-    // Se o primeiro não tiver estoque, pega a primeira variação de tamanho mesmo assim
     selectSize(variantesDaCor[0]?.tamanho || null);
   }
 }
@@ -158,18 +149,13 @@ function buildSizeSelectors(variantes) {
   const container = document.getElementById("modal-size-options");
   container.innerHTML = "";
 
-  // Suporta tamanhos numéricos do jeans (36, 38) ou tradicionais (P, M, G) mapeados no banco
   const tamanhosDisponiveis = variantes.map((v) => v.tamanho);
-
-  // Lista base para renderizar os botões na ordem correta da tela
   const padraoTamanhos = ["36", "38", "40", "42", "U", "P", "M", "G", "GG"];
 
-  // Ordena os botões conforme a lista padrão para não misturar posições na tela
   const tamanhosParaRenderizar = padraoTamanhos.filter((t) =>
     tamanhosDisponiveis.includes(t),
   );
 
-  // Fallback caso venha algum tamanho fora do padrão definido
   tamanhosDisponiveis.forEach((t) => {
     if (!tamanhosParaRenderizar.includes(t)) tamanhosParaRenderizar.push(t);
   });
@@ -182,7 +168,6 @@ function buildSizeSelectors(variantes) {
 
     if (!varianteExistente || varianteExistente.estoque === 0) {
       btn.classList.add("disabled");
-      // Se não tem estoque, o botão só ganha estilo desativado e não aceita click
     } else {
       btn.addEventListener("click", () => selectSize(tam));
     }
@@ -229,14 +214,13 @@ function updateStockStatus() {
   }
 }
 
-// 🌟 ATUALIZADO: Processa os dados dinâmicos selecionados e joga no localStorage
+// Processa os dados dinâmicos selecionados e monta o item do carrinho
 function handleAddToCart() {
   if (!selectedColor || !selectedSize) {
     showSnackbar("Por favor, selecione cor e tamanho.", "error");
     return;
   }
 
-  // Localiza a variante selecionada para resgatar o ID real da linha ("produto_variantes")
   const varianteSelecionada = currentProduct.variantes.find(
     (v) => v.cor === selectedColor && v.tamanho === selectedSize,
   );
@@ -246,9 +230,8 @@ function handleAddToCart() {
     return;
   }
 
-  // Monta o payload idêntico ao contrato aceito pelo renderizador do carrinho
   const itemCarrinho = {
-    id_variante: varianteSelecionada.id, // O ID string do doc do Firestore mapeado na busca
+    id_variante: varianteSelecionada.id, // ID real da linha em produto_variantes
     produto_id: currentProduct.id,
     nome: currentProduct.nome,
     preco: currentProduct.preco,
@@ -258,11 +241,13 @@ function handleAddToCart() {
     imagem_url: varianteSelecionada.imagem_url || "/assets/img/logo.png",
   };
 
-  // Envia diretamente para o gerenciador do carrinho (localStorage)
-  adicionarAoCarrinho(itemCarrinho);
+  // TODO (nova stack): enviar `itemCarrinho` ao módulo de carrinho do back-end
+  // (ou persistir via API). Placeholder temporário até o carrinho existir:
+  console.log("Item para o carrinho:", itemCarrinho);
+  showSnackbar("Produto adicionado ao carrinho.", "success");
 
   closeModal();
 }
 
-// Executa o carregamento assíncrono do HTML do componente
+// Liga os eventos ao modal presente na página (partial do Handlebars)
 initModal();

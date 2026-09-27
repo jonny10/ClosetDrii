@@ -1,80 +1,42 @@
-import { protegerRota } from "../../utils/auth-helpers.js";
-import { database } from "../../utils/firebase-config.js";
-import { buscarProdutosEstruturados } from "../../utils/product-helpers.js";
-import { showSnackbar } from "../../shared/components/snackbar/snackbar.js";
-import {
-  doc,
-  setDoc,
-  deleteDoc,
-  collection,
-  getDocs,
-  runTransaction,
-} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { showSnackbar } from "/js/global/snackbar.js";
 
-const IMGBB_API_KEY = "e16a8e8df3138d20de50819d35d81039";
+// Catálogo (admin) — CRUD de produtos e variantes.
+//
+// Proteção de rota (admin) e persistência agora são do back-end (Node/Express + Sequelize):
+//   - A rota deve ser protegida por middleware no servidor (não mais no cliente).
+//   - Listar/criar/editar/excluir produtos e variantes vira chamada à API.
+//   - Upload de imagem deve ser feito pelo back-end (a antiga chave imgBB no cliente
+//     era um segredo exposto e foi REMOVIDA).
+//
+// Mantida aqui toda a UI: tabela, modal de formulário e edição de variantes em memória.
 
-// Estados voláteis locais para controle de concorrência, filtros e cache de UI
+// Estados voláteis locais (populados pelo back-end via TODO)
 let produtosCache = [];
 let categoriasCache = {};
 let buscaDebounceTimer;
 let idProdutoParaExcluir = null;
 let variantesFormState = [];
-// Mapa de arquivos selecionados por variante: { [rowId]: File }
-const arquivosPendentes = {};
+const arquivosPendentes = {}; // { [rowId]: File }
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Rota Protegida: Valida a sessão em tempo real com o Firebase Auth
-  protegerRota(async (user) => {
-    const dadosSessao = JSON.parse(localStorage.getItem("loggedUser"));
-    if (!dadosSessao || dadosSessao.perfil !== "admin") {
-      showSnackbar(
-        "Acesso negado. Rota exclusiva de administradores.",
-        "error",
-      );
-      setTimeout(() => (window.location.href = "../home/home.html"), 2000);
-      return;
-    }
-
-    await carregarDadosIniciais();
-    configurarOuvintesEventos();
-  }, "Acesso restrito. Faça login como administrador.");
+  // TODO (nova stack): proteger a rota no servidor. Aqui apenas carrega a UI.
+  carregarDadosIniciais();
+  configurarOuvintesEventos();
 });
 
-// Resgata tabelas relacionais em paralelo e prepara os selects e dados de visualização
+// TODO (nova stack): buscar produtos e categorias do back-end (GET /admin/produtos, /categorias)
 async function carregarDadosIniciais() {
-  try {
-    const [listaProdutos, categoriasSnapshot] = await Promise.all([
-      buscarProdutosEstruturados(),
-      getDocs(collection(database, "categorias")),
-    ]);
+  produtosCache = [];
 
-    produtosCache = listaProdutos;
+  // Popular o select de categorias quando os dados vierem do servidor.
+  const selectCategoria = document.getElementById("form-categoria");
+  if (selectCategoria) selectCategoria.innerHTML = "";
+  // Ex.: categoriasCache[id] = nome; e criar <option> para cada.
 
-    // Mapeia chaves ordinais e popula o Select do formulário
-    const selectCategoria = document.getElementById("form-categoria");
-    if (selectCategoria) selectCategoria.innerHTML = "";
-
-    categoriasSnapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      categoriasCache[docSnap.id] = data.nome;
-
-      const option = document.createElement("option");
-      option.value = docSnap.id;
-      option.textContent = data.nome;
-      selectCategoria?.appendChild(option);
-    });
-
-    filtrarERenderizarTabela();
-  } catch (error) {
-    console.error(
-      "❌ Erro ao inicializar tabelas operacionais do CRUD:",
-      error,
-    );
-    showSnackbar("Erro ao carregar dados do catálogo.", "error");
-  }
+  filtrarERenderizarTabela();
 }
 
-// Filtra os dados em memória local e injeta os cartões via fragmento atômico
+// Filtra em memória e injeta as linhas da tabela
 function filtrarERenderizarTabela() {
   const tbody = document.getElementById("crud-products-tbody");
   if (!tbody) return;
@@ -98,7 +60,6 @@ function filtrarERenderizarTabela() {
   produtosFiltrados.forEach((produto) => {
     const tr = document.createElement("tr");
 
-    // Mapeia as variantes para tópicos verticais HTML (ul/li) com destaque visual no estoque
     const listaVariantesHTML =
       produto.variantes.length > 0
         ? `<ul class="crud-variants-list">
@@ -141,7 +102,6 @@ function configurarOuvintesEventos() {
     buscaDebounceTimer = setTimeout(() => filtrarERenderizarTabela(), 250);
   });
 
-  // Abertura do Modal de Criação (Inicializa com uma variante vazia)
   btnOpenCreate?.addEventListener("click", () => {
     form.reset();
     document.getElementById("form-product-id").value = "";
@@ -149,13 +109,7 @@ function configurarOuvintesEventos() {
       "Cadastrar Novo Look";
 
     variantesFormState = [
-      {
-        id: `new_${Date.now()}`,
-        tamanho: "M",
-        cor: "",
-        estoque: 1,
-        imagem_url: "",
-      },
+      { id: `new_${Date.now()}`, tamanho: "M", cor: "", estoque: 1, imagem_url: "" },
     ];
     renderizarLinhasVariantesModal();
     modal.style.display = "flex";
@@ -163,17 +117,11 @@ function configurarOuvintesEventos() {
 
   const fecharModal = () => {
     modal.style.display = "none";
-    // Limpa arquivos pendentes ao fechar
     Object.keys(arquivosPendentes).forEach((k) => delete arquivosPendentes[k]);
   };
-  document
-    .getElementById("btn-close-modal")
-    ?.addEventListener("click", fecharModal);
-  document
-    .getElementById("btn-cancel-form")
-    ?.addEventListener("click", fecharModal);
+  document.getElementById("btn-close-modal")?.addEventListener("click", fecharModal);
+  document.getElementById("btn-cancel-form")?.addEventListener("click", fecharModal);
 
-  // Injeta uma nova linha de variante volátil na memória do formulário
   btnAddVariantRow?.addEventListener("click", () => {
     variantesFormState.push({
       id: `new_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
@@ -185,7 +133,6 @@ function configurarOuvintesEventos() {
     renderizarLinhasVariantesModal();
   });
 
-  // Sincronização em tempo real dos inputs internos das variantes com o estado em memória
   const variantsContainer = document.getElementById("form-variants-container");
   variantsContainer?.addEventListener("input", (e) => {
     const field = e.target.dataset.field;
@@ -199,7 +146,6 @@ function configurarOuvintesEventos() {
     }
   });
 
-  // Remoção de variantes de dentro do formulário antes do submit
   variantsContainer?.addEventListener("click", (e) => {
     const btnDelete = e.target.closest(".btn-remove-variant-row");
     if (!btnDelete) return;
@@ -209,7 +155,6 @@ function configurarOuvintesEventos() {
     renderizarLinhasVariantesModal();
   });
 
-  // Delegação de Eventos para os botões internos da Tabela Principal
   tbody?.addEventListener("click", (e) => {
     const targetBtn = e.target.closest("button");
     if (!targetBtn) return;
@@ -218,21 +163,16 @@ function configurarOuvintesEventos() {
     const produtoSelecionado = produtosCache.find((p) => p.id === idProduto);
 
     if (targetBtn.classList.contains("btn-action-edit") && produtoSelecionado) {
-      document.getElementById("form-product-id").value = String(
-        produtoSelecionado.id,
-      );
+      document.getElementById("form-product-id").value = String(produtoSelecionado.id);
       document.getElementById("form-nome").value = produtoSelecionado.nome;
-      document.getElementById("form-descricao").value =
-        produtoSelecionado.descricao;
+      document.getElementById("form-descricao").value = produtoSelecionado.descricao;
       document.getElementById("form-preco").value = produtoSelecionado.preco;
 
       const fkCategoria = Object.keys(categoriasCache).find(
         (key) => categoriasCache[key] === produtoSelecionado.categoria,
       );
-      if (fkCategoria)
-        document.getElementById("form-categoria").value = fkCategoria;
+      if (fkCategoria) document.getElementById("form-categoria").value = fkCategoria;
 
-      // Clona as variantes existentes do produto para o formulário de edição
       variantesFormState = produtoSelecionado.variantes.map((v) => ({ ...v }));
       renderizarLinhasVariantesModal();
 
@@ -252,17 +192,14 @@ function configurarOuvintesEventos() {
     .getElementById("btn-cancel-delete")
     ?.addEventListener("click", () => (deleteModal.style.display = "none"));
 
-  document
-    .getElementById("btn-confirm-delete")
-    ?.addEventListener("click", async () => {
-      if (idProdutoParaExcluir) {
-        deleteModal.style.display = "none";
-        await executarRemocaoProduto(idProdutoParaExcluir);
-        idProdutoParaExcluir = null;
-      }
-    });
+  document.getElementById("btn-confirm-delete")?.addEventListener("click", async () => {
+    if (idProdutoParaExcluir) {
+      deleteModal.style.display = "none";
+      await executarRemocaoProduto(idProdutoParaExcluir);
+      idProdutoParaExcluir = null;
+    }
+  });
 
-  // Submissão unificada do formulário
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -272,7 +209,6 @@ function configurarOuvintesEventos() {
       descricao: document.getElementById("form-descricao").value.trim(),
       preco: Number(document.getElementById("form-preco").value),
       categoria_id: document.getElementById("form-categoria").value,
-      updated_at: new Date().toISOString(),
     };
 
     if (idInputVal) {
@@ -325,7 +261,7 @@ function renderizarLinhasVariantesModal() {
       </button>
     `;
 
-    // Listener para capturar o arquivo e mostrar preview imediato
+    // Captura o arquivo e mostra preview imediato (apenas visual no cliente)
     const fileInput = row.querySelector('input[type="file"]');
     fileInput.addEventListener("change", (e) => {
       const file = e.target.files[0];
@@ -347,213 +283,34 @@ function renderizarLinhasVariantesModal() {
   container.appendChild(fragment);
 }
 
-// Faz upload da imagem para o ImgBB e retorna a URL pública
+// TODO (nova stack): o upload de imagem deve ser feito pelo back-end (rota de upload),
+// nunca com chave de API no cliente. Retorna a URL pública salva pelo servidor.
 async function uploadImagemVariante(rowId) {
   const file = arquivosPendentes[rowId];
   if (!file) return null;
-
-  const formData = new FormData();
-  formData.append("image", file);
-
-  const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-    method: "POST",
-    body: formData,
-  });
-
-  const data = await response.json();
-  if (!data.success) throw new Error("Falha no upload da imagem para ImgBB.");
-  return data.data.url;
+  console.log("Upload de imagem pendente de integração com o back-end:", rowId, file.name);
+  return null;
 }
 
-// Gravação atômica unificada: ID incremental para novos produtos e suas respectivas variantes
+// TODO (nova stack): criar produto + variantes via API (POST /admin/produtos),
+// dentro de uma transação SQL no servidor.
 async function executarInsercaoCompleta(dadosProduto) {
-  showSnackbar("Processando inserção relacional...", "info");
-  try {
-    if (variantesFormState.length === 0) {
-      throw new Error("Falha: É necessário adicionar pelo menos uma variante.");
-    }
-
-    // Faz upload das imagens antes da transação
-    for (const variante of variantesFormState) {
-      const url = await uploadImagemVariante(variante.id);
-      if (url) variante.imagem_url = url;
-    }
-
-    await runTransaction(database, async (transaction) => {
-      const prodCounterRef = doc(database, "contadores", "produtos");
-      const varCounterRef = doc(database, "contadores", "produto_variantes");
-
-      const [prodCounterSnap, varCounterSnap] = await Promise.all([
-        transaction.get(prodCounterRef),
-        transaction.get(varCounterRef),
-      ]);
-
-      const proximoProdId = prodCounterSnap.exists()
-        ? prodCounterSnap.data().atual + 1
-        : 1;
-      let proximoVarId = varCounterSnap.exists()
-        ? varCounterSnap.data().atual
-        : 0;
-
-      const novoProdRef = doc(database, "produtos", String(proximoProdId));
-      const prodExisteSnap = await transaction.get(novoProdRef);
-
-      if (prodExisteSnap.exists()) {
-        throw new Error(
-          `Conflito de ID: O produto #${proximoProdId} já existe no banco.`,
-        );
-      }
-
-      transaction.set(novoProdRef, {
-        ...dadosProduto,
-        created_at: new Date().toISOString(),
-      });
-
-      variantesFormState.forEach((variante) => {
-        proximoVarId++;
-        const novaVarRef = doc(database, "produto_variantes", String(proximoVarId));
-        transaction.set(novaVarRef, {
-          produto_id: proximoProdId,
-          cor: variante.cor,
-          tamanho: variante.tamanho,
-          estoque: Number(variante.estoque),
-          imagem_url: variante.imagem_url || "",
-        });
-      });
-
-      transaction.set(prodCounterRef, { atual: proximoProdId });
-      transaction.set(varCounterRef, { atual: proximoVarId });
-    });
-
-    showSnackbar("Look e variantes salvos com sucesso!", "success");
-    await carregarDadosIniciais();
-  } catch (error) {
-    console.error(error);
-    showSnackbar(
-      error.message || "Erro ao processar salvamento unificado.",
-      "error",
-    );
+  if (variantesFormState.length === 0) {
+    showSnackbar("É necessário adicionar pelo menos uma variante.", "error");
+    return;
   }
+  console.log("Inserção (pendente integração):", { dadosProduto, variantes: variantesFormState });
+  showSnackbar("Cadastro ainda não integrado ao back-end.", "info");
 }
 
-// Sincroniza edições, remoções e inclusões órfãs de variantes no cenário de UPDATE
+// TODO (nova stack): atualizar produto + variantes via API (PUT /admin/produtos/:id).
 async function executarUpdateCompleto(produtoId, dadosProduto) {
-  showSnackbar("Sincronizando modificações...", "info");
-  try {
-    const numProdId = Number(produtoId);
-
-    // Faz upload de imagens novas antes de salvar
-    for (const variante of variantesFormState) {
-      const url = await uploadImagemVariante(variante.id);
-      if (url) variante.imagem_url = url;
-    }
-
-    await setDoc(doc(database, "produtos", String(produtoId)), dadosProduto, { merge: true });
-
-    // Busca as variantes atuais associadas a esse produto para checar deleções
-    const variantesSnapshot = await getDocs(
-      collection(database, "produto_variantes"),
-    );
-    const variantesDoProdutoNoBanco = [];
-
-    variantesSnapshot.forEach((docSnap) => {
-      if (Number(docSnap.data().produto_id) === numProdId) {
-        variantesDoProdutoNoBanco.push({ id: docSnap.id, ...docSnap.data() });
-      }
-    });
-
-    // Remove do banco variantes antigas que foram excluídas no modal
-    const idsAtivosNoForm = variantesFormState.map((v) => String(v.id));
-    const variantesParaDeletar = variantesDoProdutoNoBanco.filter(
-      (v) => !idsAtivosNoForm.includes(String(v.id)),
-    );
-
-    for (const varDel of variantesParaDeletar) {
-      await deleteDoc(doc(database, "produto_variantes", String(varDel.id)));
-    }
-
-    // Processa inclusões e edições das variantes restantes
-    let proximoVarId = null;
-
-    for (const variante of variantesFormState) {
-      const isNova = String(variante.id).startsWith("new_");
-
-      if (isNova) {
-        await runTransaction(database, async (transaction) => {
-          const varCounterRef = doc(
-            database,
-            "contadores",
-            "produto_variantes",
-          );
-          const varCounterSnap = await transaction.get(varCounterRef);
-
-          proximoVarId = varCounterSnap.exists()
-            ? varCounterSnap.data().atual + 1
-            : 1;
-
-          const novaVarRef = doc(
-            database,
-            "produto_variantes",
-            String(proximoVarId),
-          );
-          transaction.set(novaVarRef, {
-            produto_id: numProdId,
-            cor: variante.cor,
-            tamanho: variante.tamanho,
-            estoque: Number(variante.estoque),
-            imagem_url: variante.imagem_url || "",
-          });
-
-          transaction.set(varCounterRef, { atual: proximoVarId });
-        });
-      } else {
-        const varExistenteRef = doc(
-          database,
-          "produto_variantes",
-          String(variante.id),
-        );
-        await setDoc(
-          varExistenteRef,
-          {
-            cor: variante.cor,
-            tamanho: variante.tamanho,
-            estoque: Number(variante.estoque),
-            imagem_url: variante.imagem_url || "",
-          },
-          { merge: true },
-        );
-      }
-    }
-
-    showSnackbar("Catálogo atualizado com sucesso!", "success");
-    await carregarDadosIniciais();
-  } catch (error) {
-    console.error(error);
-    showSnackbar("Falha técnica ao sincronizar alterações em lote.", "error");
-  }
+  console.log("Update (pendente integração):", { produtoId, dadosProduto, variantes: variantesFormState });
+  showSnackbar("Edição ainda não integrada ao back-end.", "info");
 }
 
-// Remoção em cascata (Deleta o produto e limpa todas as suas variantes filhas)
+// TODO (nova stack): excluir produto (cascata de variantes) via API (DELETE /admin/produtos/:id).
 async function executarRemocaoProduto(id) {
-  showSnackbar("Limpando registros em cascata...", "info");
-  try {
-    const numProdId = Number(id);
-
-    await deleteDoc(doc(database, "produtos", String(id)));
-
-    const variantesSnapshot = await getDocs(
-      collection(database, "produto_variantes"),
-    );
-    for (const docSnap of variantesSnapshot) {
-      if (Number(docSnap.data().produto_id) === numProdId) {
-        await deleteDoc(doc(database, "produto_variantes", docSnap.id));
-      }
-    }
-
-    showSnackbar("Produto e suas variantes removidos da base.", "success");
-    await carregarDadosIniciais();
-  } catch (error) {
-    console.error(error);
-    showSnackbar("Erro de comunicação ao deletar do catálogo.", "error");
-  }
+  console.log("Remoção (pendente integração):", id);
+  showSnackbar("Exclusão ainda não integrada ao back-end.", "info");
 }

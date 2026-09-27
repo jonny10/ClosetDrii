@@ -1,17 +1,15 @@
-import { auth, database } from "../../utils/firebase-config.js"; // Certifique-se de que o 'database' (Firestore) é exportado aqui
-import {
-  createUserWithEmailAndPassword,
-  updateProfile,
-} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
-// 🌟 NOVO IMPORT: Métodos do Firestore para salvar na tabela plana
-import {
-  doc,
-  setDoc,
-} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
-import { showSnackbar } from "../../shared/components/snackbar/snackbar.js";
+import { showSnackbar } from "/js/global/snackbar.js";
+
+// Cadastro — validação/UX do formulário no cliente.
+// A criação de conta agora é responsabilidade do back-end (Node/Express + Sequelize).
+//
+// TODO (nova stack): enviar os dados via POST para a rota de cadastro (ex.: POST /signup).
+//   O servidor cria o usuário (hash de senha), inicia a sessão e responde.
+//   O front então redireciona para "/".
 
 document.addEventListener("DOMContentLoaded", () => {
   const cadastroForm = document.getElementById("cadastro-form");
+  if (!cadastroForm) return;
 
   cadastroForm.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -22,65 +20,24 @@ document.addEventListener("DOMContentLoaded", () => {
     const password = document.getElementById("password").value;
     const confirmPassword = document.getElementById("confirmPassword").value;
 
+    // Validação de front (mantida)
     if (password !== confirmPassword) {
       showSnackbar("As senhas não coincidem!", "error");
       return;
     }
 
-    try {
-      // 1. Cria a conta do usuário no Firebase Auth
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password,
-      );
-      const user = userCredential.user;
-
-      // 2. Adiciona o Nome no Perfil nativo do Auth
-      if (name) {
-        await updateProfile(user, {
-          displayName: name,
-        });
-      }
-
-      // 🌟 3. SALVA NO FIRESTORE (Simulando o INSERT INTO usuarios)
-      // Usamos o 'user.uid' como ID do documento para amarrar os dois mundos perfeitamente
-      await setDoc(doc(database, "usuarios", user.uid), {
-        nome: name,
-        email: email,
-        telefone: phone,
-        cpf: null, // Pode ser atualizado no painel da conta depois
-        perfil: "cliente", // Valor padrão do seu Enum SQL
-        genero: "N/I",
-        dt_nascimento: null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        deleted_at: null,
-      });
-
-      showSnackbar("Cadastro realizado com sucesso!", "success");
-
-      setTimeout(() => {
-        window.location.href = "../home/home.html";
-      }, 2000);
-    } catch (error) {
-      console.error(error);
-      showSnackbar(parseFirebaseAuthError(error), "invalid");
-    }
+    // TODO (nova stack): criar a conta no back-end.
+    //   const resp = await fetch("/signup", {
+    //     method: "POST",
+    //     headers: { "Content-Type": "application/json" },
+    //     body: JSON.stringify({ nome: name, email, telefone: phone, senha: password }),
+    //   });
+    //   if (resp.ok) { showSnackbar("Cadastro realizado com sucesso!", "success"); window.location.href = "/"; }
+    console.log("Cadastro submetido (pendente integração com o back-end):", {
+      name,
+      email,
+      phone,
+    });
+    showSnackbar("Cadastro ainda não integrado ao back-end.", "info");
   });
 });
-
-function parseFirebaseAuthError(error) {
-  switch (error.code) {
-    case "auth/email-already-in-use":
-      return "Este e-mail já está cadastrado.";
-    case "auth/invalid-email":
-      return "E-mail inválido.";
-    case "auth/weak-password":
-      return "Senha muito fraca. Use pelo menos 6 caracteres.";
-    case "auth/operation-not-allowed":
-      return "Cadastro de e-mail/senha não está habilitado no Firebase.";
-    default:
-      return "Falha ao criar a conta. Verifique os dados e tente novamente.";
-  }
-}

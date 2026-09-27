@@ -1,48 +1,38 @@
-import { database } from "../../utils/firebase-config.js";
-import {
-  buscarProdutosEstruturados,
-  renderizarComponenteCards,
-} from "../../utils/product-helpers.js";
-import {
-  collection,
-  getDocs,
-} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { showSnackbar } from "/js/global/snackbar.js";
 
-// Estados globais em memória para filtragem dinâmica e rápida
+// Catálogo (produtos) — motor de filtros/ordenação no cliente.
+//
+// Os dados (produtos e categorias) agora vêm do back-end (Node/Express + Sequelize).
+// TODO (nova stack): carregar `produtos` e as categorias do servidor
+//   (renderizados via Handlebars OU por uma API: GET /produtos, GET /categorias).
+// A renderização dos cards também deve ser server-side ({{#each}}) ou por um
+// renderizador de front dedicado — ver `renderizarComponenteCards` abaixo.
+
+// Estados globais em memória para filtragem dinâmica
 let produtos = [];
 let buscaDebounceTimer;
 
 document.addEventListener("DOMContentLoaded", async () => {
-  try {
-    // 1. Carga inicial síncrona/paralela de dados do Firestore
-    const [dadosProdutos, categoriasSnapshot] = await Promise.all([
-      buscarProdutosEstruturados(),
-      getDocs(collection(database, "categorias")),
-    ]);
+  // TODO (nova stack): popular `produtos` e `listaCategorias` a partir do back-end.
+  const listaCategorias = [];
+  produtos = [];
 
-    produtos = dadosProdutos;
-
-    // 2. Extrai e monta a lista de categorias direto do snapshot
-    const listaCategorias = [];
-    categoriasSnapshot.forEach((docSnap) => {
-      listaCategorias.push(docSnap.data().nome);
-    });
-
-    // 3. Renderiza os componentes de interface dependentes dos dados do banco
-    renderizarCheckboxesCategorias(listaCategorias);
-
-    // 4. Configura as escutas de eventos e verifica parâmetros de navegação (Query String)
-    inicializarOuvintesFiltros();
-    checarFiltrosIniciaisURL();
-
-    // 5. Executa a primeira passada de renderização do catálogo
-    aplicarFiltrosEOrdenacao();
-  } catch (error) {
-    console.error("❌ Erro ao inicializar catálogo:", error);
-  }
+  renderizarCheckboxesCategorias(listaCategorias);
+  inicializarOuvintesFiltros();
+  checarFiltrosIniciaisURL();
+  aplicarFiltrosEOrdenacao();
 });
 
-// Injeta os inputs de categoria baseados na coleção real do banco plano
+// Placeholder de renderização (antes vinha do util com Firebase).
+// TODO (nova stack): renderizar os cards no servidor (Handlebars {{#each}})
+// ou implementar aqui um renderizador de front puro.
+function renderizarComponenteCards(lista, containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  console.log(`Renderizar ${lista.length} produto(s) em #${containerId} (pendente).`);
+}
+
+// Injeta os inputs de categoria
 function renderizarCheckboxesCategorias(lista) {
   const container = document.getElementById("categories-filter-list");
   if (!container) return;
@@ -51,7 +41,7 @@ function renderizarCheckboxesCategorias(lista) {
     const li = document.createElement("li");
     li.innerHTML = `
       <label>
-        <input type="checkbox" class="category-checkbox" data-name="${categoria.toLowerCase()}" /> 
+        <input type="checkbox" class="category-checkbox" data-name="${categoria.toLowerCase()}" />
         ${categoria}
       </label>
     `;
@@ -59,7 +49,7 @@ function renderizarCheckboxesCategorias(lista) {
   });
 }
 
-// Intercepta parâmetros vindos de redirecionamentos (Ex: Chips de Categoria da Home)
+// Intercepta parâmetros vindos de redirecionamentos (ex.: chips de categoria da Home)
 function checarFiltrosIniciaisURL() {
   const params = new URLSearchParams(window.location.search);
   const catParam = params.get("categoria");
@@ -68,7 +58,6 @@ function checarFiltrosIniciaisURL() {
     const checkTodos = document.getElementById("check-todos-categorias");
     if (checkTodos) checkTodos.checked = false;
 
-    // Aguarda sutilmente a renderização síncrona dos nós filhos no DOM
     setTimeout(() => {
       const targetCheckbox = document.querySelector(
         `.category-checkbox[data-name="${catParam.toLowerCase()}"]`,
@@ -82,7 +71,6 @@ function checarFiltrosIniciaisURL() {
 }
 
 function inicializarOuvintesFiltros() {
-  // Input de Texto com tratamento Debounce para poupar processamento de renderização
   const searchInput = document.getElementById("search-input");
   if (searchInput) {
     searchInput.addEventListener("input", () => {
@@ -91,13 +79,11 @@ function inicializarOuvintesFiltros() {
     });
   }
 
-  // Ouvinte do Slider de Preço
   const sliderPreco = document.getElementById("price-slider");
   if (sliderPreco) {
     sliderPreco.addEventListener("input", () => aplicarFiltrosEOrdenacao());
   }
 
-  // Comportamento do Checkbox mestre 'Todos'
   const checkTodos = document.getElementById("check-todos-categorias");
   if (checkTodos) {
     checkTodos.addEventListener("change", () => {
@@ -110,7 +96,6 @@ function inicializarOuvintesFiltros() {
     });
   }
 
-  // Delegação de eventos para escutar mudanças nas categorias injetadas dinamicamente
   const catListContainer = document.getElementById("categories-filter-list");
   if (catListContainer) {
     catListContainer.addEventListener("change", (e) => {
@@ -121,7 +106,6 @@ function inicializarOuvintesFiltros() {
     });
   }
 
-  // Toggle individual multi-seleção de Chips de Tamanho (Nenhum = Todos valem)
   const chipsTamanho = document.querySelectorAll(".size-chip");
   chipsTamanho.forEach((chip) => {
     chip.addEventListener("click", () => {
@@ -130,27 +114,23 @@ function inicializarOuvintesFiltros() {
     });
   });
 
-  // Select de Ordenação
   const selectOrdenacao = document.getElementById("sort-select");
   if (selectOrdenacao) {
-    selectOrdenacao.addEventListener("change", () =>
-      aplicarFiltrosEOrdenacao(),
-    );
+    selectOrdenacao.addEventListener("change", () => aplicarFiltrosEOrdenacao());
   }
 
-  // Botão 'Limpar Tudo' da barra de controle de badges
   const btnClearAll = document.getElementById("btn-clear-all-filters");
   if (btnClearAll) {
     btnClearAll.addEventListener("click", resetarTodosOsFiltros);
   }
 }
 
-// LÓGICA PRINCIPAL: MOTOR DE FILTRAGEM E CORTE EM MEMÓRIA (MÁXIMA PERFORMANCE)
+// MOTOR DE FILTRAGEM E ORDENAÇÃO EM MEMÓRIA
 function aplicarFiltrosEOrdenacao() {
   let resultado = [...produtos];
   const activeFilters = [];
 
-  // 1. Filtro Condicional por Texto
+  // 1. Filtro por texto
   const searchInput = document.getElementById("search-input");
   const termoBusca = searchInput?.value.trim().toLowerCase();
   if (termoBusca) {
@@ -162,7 +142,7 @@ function aplicarFiltrosEOrdenacao() {
     activeFilters.push({ type: "text", label: `Busca: "${termoBusca}"` });
   }
 
-  // 2. Filtro Condicional por Categorias Multi-seleção
+  // 2. Filtro por categorias (multi-seleção)
   const checkTodos = document.getElementById("check-todos-categorias");
   const catCheckboxes = document.querySelectorAll(".category-checkbox");
 
@@ -181,11 +161,11 @@ function aplicarFiltrosEOrdenacao() {
         activeFilters.push({ type: "category", label: cat }),
       );
     } else if (!termoBusca) {
-      resultado = []; // Caso nenhuma caixinha esteja marcada e não haja texto digitado
+      resultado = [];
     }
   }
 
-  // 3. Filtro Condicional por Preço Limite
+  // 3. Filtro por preço
   const sliderPreco = document.getElementById("price-slider");
   const txtPrecoValue = document.getElementById("price-value");
   if (sliderPreco) {
@@ -193,21 +173,19 @@ function aplicarFiltrosEOrdenacao() {
     if (txtPrecoValue)
       txtPrecoValue.textContent = `Até R$ ${precoMaximo.toFixed(2).replace(".", ",")}`;
 
-    // Gera badge apenas se o usuário reduziu abaixo do teto padrão de R$ 500
     if (precoMaximo < 500) {
       resultado = resultado.filter((p) => p.preco <= precoMaximo);
       activeFilters.push({ type: "price", label: `Até R$ ${precoMaximo}` });
     }
   }
 
-  // 4. Filtro Condicional por Tamanhos Multi-seleção (Regra: Nenhum = Todos Valem)
+  // 4. Filtro por tamanhos (multi-seleção; nenhum = todos valem)
   const chipsAtivos = document.querySelectorAll(".size-chip.active");
   if (chipsAtivos.length > 0) {
     const tamanhosSelecionados = Array.from(chipsAtivos).map((chip) =>
       chip.textContent.trim(),
     );
 
-    // O look passa se houver correspondência com qualquer um dos tamanhos ativos (Operação IN)
     resultado = resultado.filter((produto) =>
       produto.variantes.some((variante) =>
         tamanhosSelecionados.includes(variante.tamanho),
@@ -219,7 +197,7 @@ function aplicarFiltrosEOrdenacao() {
     });
   }
 
-  // 5. Ordenação Matemática Estrita por Preço
+  // 5. Ordenação por preço
   const selectOrdenacao = document.getElementById("sort-select");
   if (selectOrdenacao) {
     switch (selectOrdenacao.value) {
@@ -232,13 +210,13 @@ function aplicarFiltrosEOrdenacao() {
     }
   }
 
-  // 6. Atualiza contador e badges na UI
+  // 6. Contador + badges
   const txtContador = document.getElementById("products-count-txt");
   if (txtContador) txtContador.textContent = resultado.length;
 
   atualizarAreaBadgesFiltros(activeFilters);
 
-  // 7. Renderização final através do componente utilitário modular
+  // 7. Renderização final
   const container = document.getElementById("product-catalog-grid");
   if (resultado.length === 0) {
     if (container) {

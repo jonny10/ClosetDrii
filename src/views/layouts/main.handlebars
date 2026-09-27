@@ -21,11 +21,11 @@
     {{> footer}}
     {{> snackbar}}
 
-    <script src="/js/global/snackbar.js"></script>
-    <script src="/js/global/header.js"></script>
-    <script src="/js/global/product-modal.js"></script>
-    <script src="/js/global/footer.js"></script>
+    <script type="module" src="/js/global/snackbar.js"></script>
+    <script type="module" src="/js/global/header.js"></script>
+    <script type="module" src="/js/global/product-modal.js"></script>
+    <script type="module" src="/js/global/footer.js"></script>
 
-    {{#if pageScript}}<script src="/js/{{pageScript}}.js"></script>{{/if}}
+    {{#if pageScript}}<script type="module" src="/js/{{pageScript}}.js"></script>{{/if}}
 </body>
 </html>
