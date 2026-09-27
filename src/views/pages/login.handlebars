@@ -1,0 +1,95 @@
+<main class="login-layout">
+  <!-- LADO ESQUERDO -->
+  <section class="hero-panel">
+    <div>
+      <span class="brand-badge">
+        <i class="fa-solid fa-bag-shopping"></i>
+        Closet Drii
+      </span>
+
+      <h1>Compre com praticidade, segurança e estilo.</h1>
+
+      <p>
+        Acompanhe seus pedidos, aproveite promoções exclusivas e tenha uma
+        experiência moderna em nossa plataforma.
+      </p>
+    </div>
+
+    <div class="hero-highlights">
+      <div class="highlight-card">
+        <strong>Entrega Rápida</strong>
+        <span>Pedidos processados com agilidade.</span>
+      </div>
+
+      <div class="highlight-card">
+        <strong>Ofertas</strong>
+        <span>Promoções exclusivas para clientes.</span>
+      </div>
+
+      <div class="highlight-card">
+        <strong>Segurança</strong>
+        <span>Seus dados protegidos com segurança.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOGIN -->
+  <section class="login-card">
+    <div class="login-header">
+      <h2>Entrar</h2>
+
+      <p>Faça login para acessar sua conta e continuar suas compras.</p>
+    </div>
+
+    <form id="login-form">
+      <div class="input-group">
+        <label for="email">E-mail</label>
+
+        <div class="input-box">
+          <i class="fa-solid fa-envelope"></i>
+
+          <input
+            type="email"
+            id="email"
+            placeholder="seuemail@exemplo.com"
+            required
+          />
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label for="password">Senha</label>
+
+        <div class="input-box">
+          <i class="fa-solid fa-lock"></i>
+
+          <input
+            type="password"
+            id="password"
+            placeholder="Sua senha"
+            required
+          />
+        </div>
+      </div>
+
+      <div class="login-options">
+        <a href="#">Esqueci minha senha</a>
+      </div>
+
+      <button type="submit" class="btn-primary">Entrar</button>
+
+      <button
+        type="button"
+        onclick="window.location.href = '/signup'"
+        class="btn-secondary"
+      >
+        Criar conta
+      </button>
+
+      <div class="register-link">
+        <span>Não possui conta?</span>
+        <a href="/signup"> Cadastre-se aqui </a>
+      </div>
+    </form>
+  </section>
+</main>

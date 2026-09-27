@@ -1,0 +1,119 @@
+<main class="products-wrapper">
+    <header class="page-header">
+    <div class="header-content">
+        <h1>Nossa Coleção</h1>
+        <p>
+        Explore peças exclusivas pensadas para realçar a sua autenticidade e
+        estilo.
+        </p>
+    </div>
+    </header>
+
+    <div class="products-layout">
+    <aside class="filters-sidebar">
+        <div class="filter-box">
+        <h3>Categorias</h3>
+        <ul class="filter-list" id="categories-filter-list">
+            <li>
+            <label
+                ><input type="checkbox" id="check-todos-categorias" checked />
+                Todos</label
+            >
+            </li>
+        </ul>
+        </div>
+
+        <div class="filter-box">
+        <h3>Preço</h3>
+        <div class="price-range">
+            <input
+            type="range"
+            min="0"
+            max="500"
+            step="10"
+            value="500"
+            id="price-slider"
+            />
+            <div class="price-labels">
+            <span>R$ 0</span>
+            <span id="price-value">Até R$ 500</span>
+            </div>
+        </div>
+        </div>
+
+        <div class="filter-box">
+        <h3>Tamanho</h3>
+        <div class="size-chips">
+            <button class="size-chip">U</button>
+            <button class="size-chip">P</button>
+            <button class="size-chip">M</button>
+            <button class="size-chip">G</button>
+            <button class="size-chip">GG</button>
+        </div>
+        </div>
+    </aside>
+
+    <section class="catalog-section">
+        <section class="search-section">
+        <div class="search-box">
+            <input
+            type="text"
+            id="search-input"
+            placeholder="Buscar vestidos, conjuntos, blusas..."
+            />
+            <button aria-label="Pesquisar" id="search-btn">
+            <i class="fas fa-search"></i>
+            </button>
+        </div>
+        </section>
+
+        <div
+        id="applied-filters-container"
+        class="applied-filters-wrapper"
+        style="display: none"
+        >
+        <span class="title-label">Filtros ativos:</span>
+        <div id="filters-badges-list" class="badges-list"></div>
+        <button id="btn-clear-all-filters" class="clear-all-link">
+            Limpar tudo
+        </button>
+        </div>
+
+        <div class="catalog-controls">
+        <p class="products-count">
+            Mostrando <strong id="products-count-txt">0</strong> produtos
+        </p>
+        <div class="sort-wrapper">
+            <label for="sort-select">Ordenar por:</label>
+            <select id="sort-select">
+            <option value="news">Novidades</option>
+            <option value="price-asc">Menor Preço</option>
+            <option value="price-desc">Maior Preço</option>
+            <option value="best-sellers">Mais Vendidos</option>
+            </select>
+        </div>
+        </div>
+
+        <div id="product-catalog-grid" class="product-grid"></div>
+
+        <template id="template-card">
+        <div class="product-card-component">
+            <div
+            class="card-clickable-area open-modal-trigger"
+            style="cursor: pointer"
+            >
+            <div class="image-wrapper">
+                <img class="produto-img" src="" alt="" />
+                <span class="product-badge">Novo</span>
+            </div>
+            <div class="card-info">
+                <h3 class="produto-nome"></h3>
+                <p class="produto-preco"></p>
+            </div>
+            </div>
+            <button class="add-btn">Detalhes do produto</button>
+        </div>
+        </template>
+    </section>
+    </div>
+</main>

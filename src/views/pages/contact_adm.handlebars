@@ -1,0 +1,32 @@
+<main class="admin-crud-layout">
+    <header class="admin-dashboard-header">
+        <div>
+            <h1>Mensagens de Atendimento</h1>
+            <p>Monitore e responda as dúvidas, sugestões e solicitações enviadas pelas clientes.</p>
+        </div>
+        <div class="counter-badge-wrapper">
+            Mensagens na Aba: <span id="pending-count">0</span>
+        </div>
+    </header>
+
+    <section class="admin-filters-wrapper">
+        <button type="button" class="status-tab active" data-status="pendentes">
+            <i class="fas fa-clock"></i> Pendentes
+        </button>
+        <button type="button" class="status-tab" data-status="respondidas">
+            <i class="fas fa-check-circle"></i> Respondidas
+        </button>
+    </section>
+
+    <div id="messages-grid-container" class="messages-grid">
+  <div
+    id="empty-messages-alert"
+    class="empty-dashboard-state"
+    style="display: none"
+  >
+    <i class="fas fa-check-circle"></i>
+    <h3>Caixa de entrada limpa!</h3>
+    <p>Nenhuma mensagem pendente de resposta no momento.</p>
+  </div>
+</main>
+

@@ -1,0 +1,157 @@
+<main class="products-wrapper admin-crud-layout">
+  <header class="admin-header-actions">
+    <div>
+      <h1>Controle de Catálogo</h1>
+      <p>
+        Gerencie produtos, categorias e monitore o estoque geral da
+        plataforma.
+      </p>
+    </div>
+    <button id="btn-open-create-modal" class="btn-primary">
+      <i class="fas fa-plus"></i> Novo Produto
+    </button>
+  </header>
+
+  <section class="admin-search-wrapper">
+    <div class="crud-search-box">
+      <i class="fas fa-search"></i>
+      <input
+        type="text"
+        id="crud-search-input"
+        placeholder="Filtrar produtos por nome ou descrição..."
+      />
+    </div>
+  </section>
+
+  <section class="admin-table-container">
+    <table class="crud-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nome do Look</th>
+          <th>Categoria</th>
+          <th>Preço Base</th>
+          <th>Variantes (Tam-Cor/Qtd)</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="crud-products-tbody"></tbody>
+    </table>
+  </section>
+</main>
+
+<div id="product-crud-modal" class="admin-modal" style="display: none">
+  <div class="modal-card">
+    <header class="modal-header">
+      <h2 id="modal-title-context">Cadastrar Novo Look</h2>
+      <button id="btn-close-modal" class="close-x-btn">&times;</button>
+    </header>
+
+    <form id="product-crud-form">
+      <input type="hidden" id="form-product-id" />
+
+      <div class="form-group">
+        <label for="form-nome">Nome do Produto</label>
+        <input
+          type="text"
+          id="form-nome"
+          required
+          placeholder="Ex: Vestido Midi Satin"
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="form-descricao">Descrição Detalhada</label>
+        <textarea
+          id="form-descricao"
+          rows="3"
+          required
+          placeholder="Fibras, caimento, detalhes da estampa..."
+        ></textarea>
+      </div>
+
+      <div class="form-row-double">
+        <div class="form-group">
+          <label for="form-preco">Preço de Venda (R$)</label>
+          <input
+            type="number"
+            id="form-preco"
+            step="0.01"
+            required
+            placeholder="180.00"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="form-categoria">Categoria Relacional (FK)</label>
+          <select id="form-categoria" required></select>
+        </div>
+      </div>
+
+      <div class="variants-management-section">
+        <header class="section-sub-header">
+          <h3>Grades e Variantes de Estoque</h3>
+          <button
+            type="button"
+            id="btn-add-variant-row"
+            class="btn-text-action"
+          >
+            <i class="fas fa-plus-circle"></i> Adicionar Variante
+          </button>
+        </header>
+
+        <div class="variants-table-header">
+          <span>Tamanho</span>
+          <span>Cor</span>
+          <span>Qtd Estoque</span>
+          <span>Imagem</span>
+          <span>Ação</span>
+        </div>
+
+        <div
+          id="form-variants-container"
+          class="variants-rows-wrapper"
+        ></div>
+      </div>
+
+      <footer class="form-actions-footer">
+        <button type="button" id="btn-cancel-form" class="btn-secondary">
+          Cancelar
+        </button>
+        <button type="submit" class="btn-primary">
+          Confirmar Salvamento
+        </button>
+      </footer>
+    </form>
+  </div>
+</div>
+
+<div id="delete-confirm-modal" class="admin-modal" style="display: none">
+  <div class="modal-card delete-modal-card">
+    <header class="modal-header">
+      <h2>Excluir Look</h2>
+      <button id="btn-close-delete-modal" class="close-x-btn">
+        &times;
+      </button>
+    </header>
+
+    <div class="modal-body-text">
+      <p>
+        Você tem certeza que deseja deletar permanentemente este produto?
+      </p>
+      <p class="warning-text-alert">
+        <i class="fas fa-exclamation-triangle"></i> Esta ação não poderá ser
+        desfeita na base de dados.
+      </p>
+    </div>
+
+    <footer class="form-actions-footer">
+      <button type="button" id="btn-cancel-delete" class="btn-secondary">
+        Cancelar
+      </button>
+      <button type="button" id="btn-confirm-delete" class="btn-primary">
+        Excluir Permanentemente
+      </button>
+    </footer>
+  </div>
+</div>

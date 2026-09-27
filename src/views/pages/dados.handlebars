@@ -1,0 +1,83 @@
+<main class="admin-crud-layout">
+  <header class="admin-dashboard-header">
+    <div>
+      <h1>Análise de Negócio e Vendas</h1>
+      <p>
+        Monitore o faturamento, comportamento de compra e a performance do
+        estoque da Closet Drii.
+      </p>
+    </div>
+    <button type="button" id="btn-refresh-data" class="btn-refresh">
+      <i class="fas fa-sync-alt"></i> Atualizar Dados
+    </button>
+  </header>
+
+  <section class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-icon icon-revenue">
+        <i class="fas fa-dollar-sign"></i>
+      </div>
+      <div class="kpi-details">
+        <h3>Faturamento Total</h3>
+        <p id="kpi-faturamento">R$ 0,00</p>
+        <span>Receita bruta acumulada</span>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon icon-orders">
+        <i class="fas fa-shopping-bag"></i>
+      </div>
+      <div class="kpi-details">
+        <h3>Pedidos Concluídos</h3>
+        <p id="kpi-pedidos">0</p>
+        <span>Vendas totais registradas</span>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon icon-ticket">
+        <i class="fas fa-chart-line"></i>
+      </div>
+      <div class="kpi-details">
+        <h3>Ticket Médio</h3>
+        <p id="kpi-ticket">R$ 0,00</p>
+        <span>Média gasta por pedido</span>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon icon-items">
+        <i class="fas fa-boxes"></i>
+      </div>
+      <div class="kpi-details">
+        <h3>Peças Vendidas</h3>
+        <p id="kpi-pecas">0</p>
+        <span>Volume físico de saída</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="analytics-main-section">
+    <div class="analytics-card text-ranking-card">
+      <header class="analytics-card-header">
+        <h2><i class="fas fa-crown"></i> Top Looks Mais Vendidos</h2>
+        <p>Ranking de produtos baseado no volume físico de saídas.</p>
+      </header>
+
+      <div class="ranking-wrapper">
+        <table class="ranking-table">
+          <thead>
+            <tr>
+              <th style="width: 80px">Posição</th>
+              <th>Nome do Look</th>
+              <th style="text-align: center">Qtd Vendida</th>
+              <th style="text-align: right">Total Gerado</th>
+            </tr>
+          </thead>
+          <tbody id="ranking-products-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>

@@ -1,0 +1,89 @@
+<main class="contact-wrapper">
+  <header class="page-header">
+    <span class="contact-badge">Atendimento</span>
+    <h1>Fale Conosco</h1>
+    <p>
+      Tem alguma dúvida sobre o seu pedido, tamanhos ou quer enviar uma
+      sugestão? Nossa equipe está pronta para te ouvir.
+    </p>
+  </header>
+
+  <div class="contact-layout">
+    <aside class="contact-info">
+      <div class="info-card">
+        <div class="info-icon">
+          <i class="fas fa-envelope"></i>
+        </div>
+        <div class="info-details">
+          <h3>E-mail Oficial</h3>
+          <p>contato@closetdrii.com.br</p>
+          <span>Respondemos em até 24h úteis</span>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-icon">
+          <i class="fab fa-whatsapp"></i>
+        </div>
+        <div class="info-details">
+          <h3>WhatsApp</h3>
+          <p>(19) 99999-9999</p>
+          <span>Seg à Sex, das 9h às 18h</span>
+        </div>
+      </div>
+    </aside>
+
+    <section class="form-section">
+      <h2>Envie uma Mensagem</h2>
+
+      <form id="contact-store-form">
+        <div class="form-group">
+          <label for="contact-nome">Nome Completo</label>
+          <input
+            type="text"
+            id="contact-nome"
+            required
+            placeholder="Ex: Maria Eduarda Silva"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="contact-email">E-mail</label>
+          <input
+            type="email"
+            id="contact-email"
+            required
+            placeholder="Ex: maria.silva@email.com"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="contact-assunto">Assunto do Atendimento</label>
+          <select id="contact-assunto" required>
+            <option value="" disabled selected hidden>
+              Selecione um motivo...
+            </option>
+            <option value="duvidas_produto">Dúvidas sobre Looks</option>
+            <option value="status_pedido">Status do meu Pedido</option>
+            <option value="trocas_devolucoes">Trocas e Devoluções</option>
+            <option value="outros">Outros Assuntos</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="contact-mensagem">Mensagem</label>
+          <textarea
+            id="contact-mensagem"
+            rows="5"
+            required
+            placeholder="Conte detalhadamente como podemos te ajudar..."
+          ></textarea>
+        </div>
+
+        <button type="submit" class="btn-submit">
+          <i class="fas fa-paper-plane"></i> Enviar Mensagem
+        </button>
+      </form>
+    </section>
+  </div>
+</main>
