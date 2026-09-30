@@ -7,5 +7,6 @@ router.use(require("./account.routes"));
 router.use(require("./catalog.routes"));
 router.use(require("./cart.routes"));
 router.use(require("./admin.routes"));
+router.use("/api", require("./api.routes"));
 
 module.exports = router;
