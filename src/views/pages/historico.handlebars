@@ -1,0 +1,77 @@
+<main class="products-wrapper">
+  <header class="page-header">
+    <div class="header-content">
+      <h1>Meus Pedidos</h1>
+      <p>
+        Acompanhe o status das suas compras e relembre seus looks favoritos
+        da Closet Drii.
+      </p>
+    </div>
+  </header>
+
+  <div class="history-layout-grid">
+    <section id="orders-container" class="orders-list-section"></section>
+
+    <div
+      id="empty-history-message"
+      class="empty-history-card"
+      style="display: none"
+    >
+      <i class="fas fa-box-open"></i>
+      <h2>Você ainda não fez compras</h2>
+      <p>
+        Que tal explorar nossa nova coleção de 2026 e encontrar o look
+        perfeito?
+      </p>
+      <a href="/produtos" class="btn-primary-link"
+        >Ver Coleção</a
+      >
+    </div>
+
+    <template id="template-order-card">
+      <div class="order-container-card">
+        <div class="order-card-header">
+          <div class="order-meta-info">
+            <span>Pedido: <strong class="order-id">#0000</strong></span>
+            <span
+              >Data: <strong class="order-date">00/00/0000</strong></span
+            >
+          </div>
+          <span class="order-status-badge">Pendente</span>
+        </div>
+
+        <div class="order-products-rows-list"></div>
+
+        <div class="order-card-footer">
+          <span>Total do Pedido:</span>
+          <strong class="order-total-price">R$ 0,00</strong>
+        </div>
+      </div>
+    </template>
+
+    <template id="template-order-item">
+      <div class="order-product-item-row">
+        <div class="product-item-main">
+          <div class="product-item-image-box">
+            <img class="cart-img" src="" alt="Produto" />
+          </div>
+          <div class="product-item-details">
+            <h3 class="cart-nome"></h3>
+            <div class="item-specs">
+              <span>Cor: <strong class="cart-cor"></strong></span>
+              <span>Tamanho: <strong class="cart-tamanho"></strong></span>
+            </div>
+            <p class="cart-preco-unitario"></p>
+          </div>
+        </div>
+
+        <div class="product-item-pricing-box">
+          <span class="order-item-qty"
+            >Qtd: <strong class="qty-count">1</strong></span
+          >
+          <span class="cart-subtotal-item">R$ 0,00</span>
+        </div>
+      </div>
+    </template>
+  </div>
+</main>

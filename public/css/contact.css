@@ -1,0 +1,242 @@
+:root {
+  --primary: #bf5e81;
+  --primary-dark: #9f4d6b;
+  --secondary: #cd7068;
+  --bg: #fff7f7;
+  --card: #ffffff;
+  --text: #2b2b2b;
+  --muted: #707070;
+  --border: #f0dcdc;
+  --shadow: 0 12px 30px rgba(191, 94, 129, 0.12);
+  --radius: 28px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Outfit", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.contact-wrapper {
+  padding: calc(110px) 32px 40px;
+  max-width: 1300px;
+  margin: auto;
+}
+
+/* CABEÇALHO DA PÁGINA */
+.page-header {
+  margin-bottom: 40px;
+  padding: 50px;
+  border-radius: var(--radius);
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.85),
+    rgba(255, 255, 255, 0.55)
+  );
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.contact-badge {
+  display: inline-flex;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(191, 94, 129, 0.12);
+  color: var(--primary);
+  font-weight: 700;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+}
+
+.page-header h1 {
+  font-size: clamp(2.2rem, 4vw, 3.8rem);
+  color: var(--primary);
+  margin-bottom: 16px;
+}
+
+.page-header p {
+  color: var(--muted);
+  font-size: 1.15rem;
+  max-width: 65ch;
+  margin: auto;
+  line-height: 1.6;
+}
+
+/* LAYOUT PRINCIPAL */
+.contact-layout {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 32px;
+  align-items: start;
+}
+
+/* BLOCO DE INFORMAÇÕES */
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.info-card {
+  background: white;
+  padding: 30px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  transition: transform 0.3s;
+}
+
+.info-card:hover {
+  transform: translateY(-3px);
+}
+
+.info-icon {
+  width: 55px;
+  height: 55px;
+  background: rgba(191, 94, 129, 0.1);
+  color: var(--primary);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.info-details h3 {
+  font-size: 1.15rem;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.info-details p {
+  font-size: 1.1rem;
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.info-details span {
+  font-size: 0.85rem;
+  color: var(--muted);
+  display: block;
+  margin-top: 4px;
+}
+
+/* FORMULÁRIO DE CONTATO */
+.form-section {
+  background: white;
+  padding: 45px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.form-section h2 {
+  color: var(--primary);
+  font-size: 1.8rem;
+  margin-bottom: 28px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: #faf4f4;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--text);
+  outline: none;
+  transition: 0.3s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: var(--primary);
+  background: white;
+  box-shadow: 0 0 0 4px rgba(191, 94, 129, 0.08);
+}
+
+.form-group textarea {
+  resize: vertical;
+}
+
+/* BOTÃO SUBMIT COM GRADIENTE */
+.btn-submit {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 16px;
+  font-weight: 700;
+  font-family: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: white;
+  box-shadow: 0 10px 24px rgba(191, 94, 129, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+}
+
+.btn-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(191, 94, 129, 0.3);
+}
+
+.btn-submit:disabled {
+  background: var(--border);
+  color: var(--muted);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* RESPONSIVIDADE COMPLETA */
+@media (max-width: 1024px) {
+  .contact-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .contact-wrapper {
+    padding: 120px 18px 30px;
+  }
+
+  .page-header,
+  .form-section {
+    padding: 32px 24px;
+  }
+
+  .page-header h1 {
+    font-size: 2rem;
+  }
+}

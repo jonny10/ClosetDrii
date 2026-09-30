@@ -1,0 +1,158 @@
+<main class="login-layout">
+  <!-- LADO ESQUERDO: PAINEL HERO (Idêntico ao do Login) -->
+  <section class="hero-panel">
+    <div>
+      <span class="brand-badge">
+        <i class="fa-solid fa-bag-shopping"></i>
+        Closet Drii
+      </span>
+
+      <h1>Compre com praticidade, segurança e estilo.</h1>
+
+      <p>
+        Acompanhe seus pedidos, aproveite promoções exclusivas e tenha uma
+        experiência moderna em nossa plataforma.
+      </p>
+    </div>
+
+    <div class="hero-highlights">
+      <div class="highlight-card">
+        <strong>Entrega Rápida</strong>
+        <span>Pedidos processados com agilidade.</span>
+      </div>
+
+      <div class="highlight-card">
+        <strong>Ofertas</strong>
+        <span>Promoções exclusivas para clientes.</span>
+      </div>
+
+      <div class="highlight-card">
+        <strong>Segurança</strong>
+        <span>Seus dados protegidos com segurança.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- LADO DIREITO: SEU NOVO FORMULÁRIO DE CADASTRO -->
+  <section class="login-card">
+    <div class="brand-area">
+      <h2>Crie sua conta</h2>
+      <p class="subtitle">
+        Faça parte do Closet Drii e receba novidades, descontos exclusivos e
+        lançamentos de 2026 em primeira mão.
+      </p>
+    </div>
+
+    <form id="cadastro-form">
+      <!-- NOME COMPLETO -->
+      <div class="input-group">
+        <label for="name">Nome Completo</label>
+        <div class="input-with-icon">
+          <i class="fa-regular fa-user"></i>
+          <input
+            type="text"
+            id="name"
+            required
+            placeholder="Digite seu nome completo"
+          />
+        </div>
+      </div>
+
+      <!-- EMAIL + PHONE EM LINHA -->
+      <div class="input-row">
+        <div class="input-group">
+          <label for="email">E-mail</label>
+          <div class="input-with-icon">
+            <i class="fa-regular fa-envelope"></i>
+            <input
+              type="email"
+              id="email"
+              required
+              placeholder="seuemail@exemplo.com"
+            />
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label for="phone">WhatsApp</label>
+          <div class="input-with-icon">
+            <i class="fa-brands fa-whatsapp"></i>
+            <input
+              type="tel"
+              id="phone"
+              required
+              placeholder="(00) 90000-0000"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- SENHAS EM LINHA -->
+      <div class="input-row">
+        <div class="input-group">
+          <label for="password">Senha</label>
+          <div class="input-with-icon">
+            <i class="fa-solid fa-lock"></i>
+            <input
+              type="password"
+              id="password"
+              required
+              placeholder="Crie uma senha forte"
+            />
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label for="confirmPassword">Confirmar Senha</label>
+          <div class="input-with-icon">
+            <i class="fa-solid fa-shield-heart"></i>
+            <input
+              type="password"
+              id="confirmPassword"
+              required
+              placeholder="Repita sua senha"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- FORÇA DA SENHA -->
+      <div class="password-strength-container">
+        <div class="strength-bar"></div>
+        <span class="password-text">Use letras, números e símbolos.</span>
+      </div>
+
+      <!-- ACEITE DE TERMOS -->
+      <div class="terms-group">
+        <input type="checkbox" id="terms" required />
+        <label for="terms">
+          Concordo com os <a href="#">Termos de Uso</a> e
+          <a href="#">Políticas de Privacidade</a>.
+        </label>
+      </div>
+
+      <!-- BOTÕES DE AÇÃO -->
+      <button type="submit" class="btn-submit">Finalizar Cadastro</button>
+
+      <div class="form-divider">
+        <span>ou conecte-se via</span>
+      </div>
+
+      <!-- REDES SOCIAIS -->
+      <div class="social-login-grid">
+        <button type="button" class="btn-social google">
+          <i class="fa-brands fa-google"></i> Google
+        </button>
+        <button type="button" class="btn-social facebook">
+          <i class="fa-brands fa-facebook-f"></i> Facebook
+        </button>
+      </div>
+
+      <!-- REDIRECIONAMENTO -->
+      <div class="login-redirect">
+        <span>Já possui uma conta?</span>
+        <a href="/login">Fazer login</a>
+      </div>
+    </form>
+  </section>
+</main>

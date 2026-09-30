@@ -1,0 +1,166 @@
+<main class="cart-wrapper">
+  <header class="page-header">
+    <div class="header-content">
+      <h1>Seu Closet Virtual</h1>
+      <p>
+        Revise suas escolhas, ajuste os detalhes e prepare-se para arrasar
+        com seus novos looks.
+      </p>
+    </div>
+  </header>
+
+  <div class="cart-layout">
+    <section class="cart-items-section">
+      <div id="cart-items-container" class="cart-items-list"></div>
+
+      <div
+        id="empty-cart-message"
+        class="empty-cart-box"
+        style="display: none"
+      >
+        <i class="fas fa-shopping-bag"></i>
+        <h2>Seu carrinho está vazio</h2>
+        <p>
+          Que tal explorar nossa nova coleção de 2026 e encontrar o look
+          perfeito?
+        </p>
+        <a href="/produtos" class="btn-secondary"
+          >Voltar às compras</a
+        >
+      </div>
+
+      <template id="template-cart-item">
+        <div class="cart-item-card">
+          <div class="item-main-info">
+            <div class="item-image">
+              <img class="cart-img" src="" alt="Produto" />
+            </div>
+            <div class="item-details">
+              <h3 class="cart-nome"></h3>
+              <div class="item-specs">
+                <span>Cor: <strong class="cart-cor"></strong></span>
+                <span>Tamanho: <strong class="cart-tamanho"></strong></span>
+              </div>
+              <p class="cart-preco-unitario"></p>
+            </div>
+          </div>
+
+          <div class="item-actions">
+            <div class="quantity-selector">
+              <button class="btn-qty-minus">-</button>
+              <input
+                type="number"
+                class="cart-qty-input"
+                value="1"
+                readonly
+              />
+              <button class="btn-qty-plus">+</button>
+            </div>
+
+            <div class="price-remove-block">
+              <span class="cart-subtotal-item"></span>
+              <button class="btn-remove-item" title="Remover item">
+                <i class="far fa-trash-alt"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </template>
+    </section>
+
+    <aside class="cart-summary-sidebar">
+      <div class="summary-card">
+        <h2>Resumo do Pedido</h2>
+
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span id="summary-subtotal">R$ 0,00</span>
+        </div>
+
+        <div class="summary-row">
+          <span>Frete</span>
+          <span id="summary-shipping" class="free-shipping">Grátis</span>
+        </div>
+
+        <hr class="summary-divider" />
+
+        <div class="summary-row total-row">
+          <span>Total</span>
+          <span id="summary-total">R$ 0,00</span>
+        </div>
+
+        <button id="btn-checkout" class="btn-primary checkout-btn">
+          <i class="fab fa-whatsapp"> </i>
+          Finalizar Compra
+        </button>
+
+        <a href="/produtos" class="continue-shopping">
+          <i class="fas fa-arrow-left"></i> Continuar Comprando
+        </a>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<div
+  id="checkout-instructions-modal"
+  class="checkout-modal-overlay"
+  style="display: none"
+>
+  <div class="checkout-modal-card">
+    <header class="checkout-modal-header">
+      <h2><i class="fab fa-whatsapp"></i> Pedido Pré-Reservado!</h2>
+      <button id="btn-close-checkout-modal" class="checkout-close-x">
+        &times;
+      </button>
+    </header>
+
+    <div class="checkout-modal-body">
+      <p class="checkout-intro-text">
+        Seu pedido <strong id="modal-txt-id">#0000</strong> de
+        <strong id="modal-txt-total">R$ 0,00</strong> foi gerado com sucesso
+        e agora consta como
+        <span class="checkout-badge-pending">PENDENTE</span> no nosso
+        sistema.
+      </p>
+
+      <div class="checkout-flow-box">
+        <h3>📌 Como funciona o fluxo de finalização?</h3>
+        <ul>
+          <li>
+            <strong>1. Alinhamento Direto:</strong> O pagamento e os
+            detalhes de entrega são combinados diretamente no WhatsApp com
+            nossa equipe.
+          </li>
+          <li>
+            <strong>2. Atualização de Status:</strong> Assim que o acerto
+            for concluído, o status do pedido mudará no painel do site.
+          </li>
+          <li>
+            <strong>3. Acompanhamento:</strong> Você pode monitorar essa
+            evolução acessando o seu
+            <strong>Histórico de Compras</strong> diretamente pela página de
+            Perfil.
+          </li>
+        </ul>
+        <p class="checkout-danger-text">
+          ⚠️
+          <em
+            >Atenção: Caso o pagamento não seja efetuado no atendimento, a
+            reserva do estoque será cancelada.</em
+          >
+        </p>
+      </div>
+    </div>
+
+    <footer class="checkout-modal-footer">
+      <button
+        type="button"
+        id="btn-modal-whatsapp-redirect"
+        class="checkout-btn-submit-modal"
+      >
+        <i class="fab fa-whatsapp"></i> Ir para o WhatsApp e Chamar Equipe
+      </button>
+    </footer>
+  </div>
+</div>

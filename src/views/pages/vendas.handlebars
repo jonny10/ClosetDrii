@@ -1,0 +1,85 @@
+<main class="products-wrapper">
+  <header class="page-header">
+    <div class="header-content">
+      <h1>Controle de Vendas</h1>
+      <p>
+        Monitore o faturamento, altere status de entrega e faça a gestão completa dos pedidos da loja.
+      </p>
+    </div>
+  </header>
+
+  <div class="history-layout-grid">
+    
+    <div class="admin-filter-bar">
+      <button class="status-tab active" data-status="todos">Todos</button>
+      <button class="status-tab" data-status="pendente">Pendentes</button>
+      <button class="status-tab" data-status="pago">Pagos</button>
+      <button class="status-tab" data-status="enviado">Enviados</button>
+      <button class="status-tab" data-status="cancelado">Cancelados</button>
+    </div>
+
+    <div class="catalog-controls">
+      <p class="products-count">Listando <strong id="orders-count">0</strong> pedidos</p>
+    </div>
+
+    <section id="admin-orders-container" class="orders-list-section"></section>
+
+    <div id="no-orders-message" class="empty-history-card" style="display: none">
+      <i class="fas fa-folder-open"></i>
+      <h2>Nenhum pedido encontrado</h2>
+      <p>Não existem vendas registradas com o status selecionado neste momento.</p>
+    </div>
+
+    <template id="template-admin-order-card">
+      <div class="order-container-card">
+        <div class="order-card-header admin-header">
+          <div class="order-meta-info">
+            <span>Pedido: <strong class="order-id">#0000</strong></span>
+            <span>Cliente: <strong class="order-client-name">Carregando...</strong></span>
+          </div>
+          <span class="order-status-badge">Pendente</span>
+        </div>
+
+        <div class="order-products-rows-list"></div>
+
+        <div class="order-card-footer admin-footer">
+          <div class="total-block">
+            <span>Total do Pedido:</span>
+            <strong class="order-total-price">R$ 0,00</strong>
+          </div>
+          
+          <div class="admin-status-control-block">
+            <label for="status-change-select">Alterar Status:</label>
+            <select class="status-change-select">
+              <option value="pendente">Pendente</option>
+              <option value="pago">Pago</option>
+              <option value="enviado">Enviado</option>
+              <option value="cancelado">Cancelado</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <template id="template-admin-order-item">
+      <div class="order-product-item-row">
+        <div class="product-item-main">
+          <div class="product-item-image-box">
+            <img class="cart-img" src="" alt="Produto" />
+          </div>
+          <div class="product-item-details">
+            <h3 class="cart-nome"></h3>
+            <div class="item-specs">
+              <span>Cor: <strong class="cart-cor"></strong></span>
+              <span>Tamanho: <strong class="cart-tamanho"></strong></span>
+            </div>
+          </div>
+        </div>
+        <div class="product-item-pricing-box">
+          <span class="order-item-qty">Qtd: <strong class="qty-count">1</strong></span>
+          <span class="cart-subtotal-item">R$ 0,00</span>
+        </div>
+      </div>
+    </template>
+  </div>
+</main> 

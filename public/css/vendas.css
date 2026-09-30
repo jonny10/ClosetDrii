@@ -1,0 +1,82 @@
+@import url('/css/historico.css'); /* Reaproveita a estrutura limpa do histórico */
+
+/* Barra de Abas Estilo os Chips da Vitrine */
+.admin-filter-bar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+  background: white;
+  padding: 16px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.status-tab {
+  padding: 10px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #f7eeee;
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.status-tab:hover,
+.status-tab.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+/* Ajustes do Bloco de Gerenciamento de Status */
+.admin-status-control-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-status-control-block label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.admin-status-control-block select {
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #faf4f4;
+  color: var(--text);
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+}
+
+.order-card-footer.admin-footer {
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.total-block {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+@media (max-width: 600px) {
+  .order-card-footer.admin-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .admin-status-control-block {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

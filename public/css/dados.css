@@ -1,0 +1,337 @@
+/* 🌟 TOKENS VISUAIS UNIFICADOS - PADRÃO CLOSET DRII */
+:root {
+  --primary: #bf5e81;
+  --primary-dark: #9f4d6b;
+  --secondary: #cd7068;
+  --bg: #fff7f7;
+  --card: #ffffff;
+  --text: #2b2b2b;
+  --muted: #707070;
+  --border: #f0dcdc;
+  --shadow: 0 12px 30px rgba(191, 94, 129, 0.12);
+  --radius: 28px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Outfit", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+/* LAYOUT CENTRAL DO DASHBOARD */
+.admin-crud-layout {
+  padding: 120px 32px 40px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* CABEÇALHO COM GLASSMORPHISM AVANÇADO */
+.admin-dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.9),
+    rgba(255, 255, 255, 0.6)
+  );
+  backdrop-filter: blur(16px);
+  padding: 30px 40px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.admin-dashboard-header h1 {
+  color: var(--primary);
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  letter-spacing: -0.5px;
+}
+
+.admin-dashboard-header p {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+/* BOTÃO DE ATUALIZAÇÃO GRADIENTE */
+.btn-refresh {
+  border: none;
+  padding: 14px 28px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: white;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 12px rgba(191, 94, 129, 0.2);
+}
+
+.btn-refresh:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(191, 94, 129, 0.35);
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+}
+
+.btn-refresh i {
+  transition: transform 0.4s ease;
+}
+
+.btn-refresh:hover i {
+  transform: rotate(180deg);
+}
+
+/* GRID DE CARDS INDICADORES (KPIs) */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin-bottom: 36px;
+}
+
+.kpi-card {
+  background: white;
+  padding: 28px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.kpi-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(191, 94, 129, 0.16);
+}
+
+.kpi-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.icon-revenue {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+.icon-orders {
+  background: #eef2fe;
+  color: #3f51b5;
+}
+.icon-ticket {
+  background: #fff8e1;
+  color: #f57f17;
+}
+.icon-items {
+  background: #f3e5f5;
+  color: #8e24aa;
+}
+
+.kpi-details h3 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: var(--muted);
+  letter-spacing: 0.8px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.kpi-details p {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+}
+
+.kpi-details span {
+  font-size: 0.78rem;
+  color: var(--muted);
+  display: block;
+  margin-top: 6px;
+}
+
+/* SEÇÃO PRINCIPAL DE ANALYTICS (RANKINGS) */
+.analytics-main-section {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.analytics-card {
+  background: white;
+  padding: 40px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+}
+
+.analytics-card-header {
+  margin-bottom: 28px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 20px;
+}
+
+.analytics-card-header h2 {
+  font-size: 1.4rem;
+  color: var(--primary);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.analytics-card-header h2 i {
+  color: #ffd700;
+  filter: drop-shadow(0 2px 4px rgba(255, 215, 0, 0.2));
+}
+
+.analytics-card-header p {
+  font-size: 0.92rem;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* TABELA DE ALTA PERFORMANCE (TOP LOOKS) */
+.ranking-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.ranking-table th,
+.ranking-table td {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.98rem;
+}
+
+.ranking-table th {
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--primary);
+  font-size: 0.8rem;
+  letter-spacing: 0.6px;
+  background: #faf4f4;
+}
+
+.ranking-table th:first-child {
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+}
+
+.ranking-table th:last-child {
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+.ranking-table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.ranking-table tbody tr:hover {
+  background-color: #fffbfa;
+}
+
+/* ELEMENTOS DE CLASSIFICAÇÃO (MEDALHAS E BADGES) */
+.position-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #f0f0f0;
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--text);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* Estilização Premium para o Top 3 */
+.pos-gold {
+  background: linear-gradient(135deg, #ffd700, #ffb300);
+  color: #5d4300;
+  box-shadow: 0 4px 10px rgba(255, 215, 0, 0.3);
+}
+
+.pos-silver {
+  background: linear-gradient(135deg, #e0e0e0, #b0b0b0);
+  color: #333333;
+  box-shadow: 0 4px 10px rgba(176, 176, 176, 0.3);
+}
+
+.pos-bronze {
+  background: linear-gradient(135deg, #e5a65d, #cd7f32);
+  color: white;
+  box-shadow: 0 4px 10px rgba(205, 127, 50, 0.3);
+}
+
+.table-empty {
+  text-align: center;
+  color: var(--muted);
+  padding: 60px !important;
+  font-weight: 500;
+  font-style: italic;
+}
+
+/* RESPONSIVIDADE FLUIDA */
+@media (max-width: 1200px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-crud-layout {
+    padding: 120px 16px 30px;
+  }
+
+  .admin-dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 24px;
+  }
+
+  .btn-refresh {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .kpi-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .analytics-card {
+    padding: 24px;
+  }
+
+  .ranking-table th,
+  .ranking-table td {
+    padding: 14px 12px;
+    font-size: 0.9rem;
+  }
+}
