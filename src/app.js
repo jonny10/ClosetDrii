@@ -26,12 +26,23 @@ app.use("/", routes);
 
 // --- 404 ---
 app.use((req, res) => {
+  if (req.originalUrl.startsWith("/api")) {
+    return res.status(404).json({ error: "Rota não encontrada" });
+  }
   res.status(404).render("pages/404", { title: "Página não encontrada", pageStyle: "404" });
 });
 
 // --- Handler global de erros ---
 app.use((err, req, res, next) => {
   console.error(err);
+
+  // API responde JSON padronizado; views caem na página de erro
+  if (req.originalUrl.startsWith("/api")) {
+    return res.status(err.status || 500).json({
+      error: err.message || "Erro interno do servidor",
+    });
+  }
+
   res.status(err.status || 500).render("pages/error", {
     title: "Erro",
     message: err.message,
