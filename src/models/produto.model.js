@@ -20,6 +20,7 @@ const Produto = sequelize.define(
 
 Produto.associate = (models) => {
     Produto.belongsTo(models.Categoria, { foreignKey: "categoria_id", as: "categoria" });
+    Produto.hasMany(models.Variante, { foreignKey: "produto_id", as: "variantes" });
 };
 
 module.exports = Produto;
