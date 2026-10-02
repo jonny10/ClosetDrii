@@ -10,4 +10,4 @@ async function renderCart(req, res, next) {
     }
 }
 
-module.exports = { renderCart };
+module.exports = renderCart;
