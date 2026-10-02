@@ -1,12 +1,13 @@
 const express = require("express");
 const router = express.Router();
 
-const homeController = require("../controllers/home.controller");
-const siteController = require("../controllers/site.controller");
+const renderHome = require("../controllers/site/home.controller");
+const renderAbout = require("../controllers/site/sobre.controller");
+const renderContact = require("../controllers/site/contato.controller");
 const logger = require("../middlewares/logger.middleware");
 
-router.get("/", logger, homeController.renderHome);
-router.get("/about", logger, siteController.renderAbout);
-router.get("/contact", logger, siteController.renderContact);
+router.get("/", logger, renderHome);
+router.get("/about", logger, renderAbout);
+router.get("/contact", logger, renderContact);
 
 module.exports = router;

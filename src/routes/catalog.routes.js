@@ -1,10 +1,11 @@
 const express = require("express");
 const router = express.Router();
 
-const catalogController = require("../controllers/catalog.controller");
+const renderProdutos = require("../controllers/catalog/produtos.controller");
+const renderCatalogo = require("../controllers/catalog/catalogo.controller");
 const logger = require("../middlewares/logger.middleware");
 
-router.get("/produtos", logger, catalogController.renderProdutos);
-router.get("/catalogo", logger, catalogController.renderCatalogo);
+router.get("/produtos", logger, renderProdutos);
+router.get("/catalogo", logger, renderCatalogo);
 
 module.exports = router;
