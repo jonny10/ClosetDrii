@@ -1,4 +1,4 @@
-const homeService = require("../services/home.service");
+const homeService = require("../../services/home.service");
 
 async function renderHome(req, res, next) {
     try {
@@ -16,4 +16,4 @@ async function renderHome(req, res, next) {
     }
 }
 
-module.exports = { renderHome };
+module.exports = renderHome;
