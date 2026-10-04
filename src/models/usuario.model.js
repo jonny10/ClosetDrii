@@ -27,6 +27,7 @@ const Usuario = sequelize.define(
 // declara as relações do Usuario (recebe todos os models já carregados)
 Usuario.associate = (models) => {
     Usuario.hasMany(models.Endereco, { foreignKey: "usuario_id", as: "enderecos" });
+    Usuario.hasMany(models.Avaliacao, { foreignKey: "usuario_id", as: "avaliacoes" });
 };
 
 module.exports = Usuario;
