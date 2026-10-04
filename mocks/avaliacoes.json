@@ -1,0 +1,14 @@
+[
+    { "id": 1, "usuario_id": 4, "produto_id": 1, "nota": 5, "comentario": "Vestido lindo, tecido de ótima qualidade e caimento perfeito!" },
+    { "id": 2, "usuario_id": 5, "produto_id": 2, "nota": 4, "comentario": "Muito elegante, mas o tamanho P ficou um pouco justo." },
+    { "id": 3, "usuario_id": 6, "produto_id": 5, "nota": 5, "comentario": "Calça incrível, valoriza muito a silhueta. Super recomendo!" },
+    { "id": 4, "usuario_id": 7, "produto_id": 3, "nota": 4, "comentario": "Blusa fofa e confortável, as cores são bem vibrantes." },
+    { "id": 5, "usuario_id": 8, "produto_id": 1, "nota": 5, "comentario": "Comprei para um casamento e recebi muitos elogios!" },
+    { "id": 6, "usuario_id": 9, "produto_id": 10, "nota": 5, "comentario": "Vestido xadrez incrível, muito versátil para o dia a dia!" },
+    { "id": 7, "usuario_id": 10, "produto_id": 7, "nota": 3, "comentario": "A saia é bonita mas o tecido amassa muito fácil." },
+    { "id": 8, "usuario_id": 11, "produto_id": 9, "nota": 5, "comentario": "Vestido azul lindo, caimento perfeito e tecido de qualidade." },
+    { "id": 9, "usuario_id": 12, "produto_id": 13, "nota": 4, "comentario": "Camisa florida super estilosa, recebi muitos elogios!" },
+    { "id": 10, "usuario_id": 13, "produto_id": 15, "nota": 5, "comentario": "Saia longa linda, tecido fluido e muito confortável!" },
+    { "id": 11, "usuario_id": 14, "produto_id": 2, "nota": 4, "comentario": "Vestido tubinho clássico, uso no trabalho toda semana." },
+    { "id": 12, "usuario_id": 15, "produto_id": 17, "nota": 5, "comentario": "Vestido boho maravilhoso, perfeito para o festival que fui!" }
+]

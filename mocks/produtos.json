@@ -1,0 +1,22 @@
+[
+    { "id": 1, "nome": "Vestido Floral Midi", "descricao": "Vestido midi estampa floral, tecido leve, ideal para o verão", "preco": 189.90, "categoria_id": 1 },
+    { "id": 2, "nome": "Vestido Tubinho Preto", "descricao": "Vestido tubinho clássico preto, perfeito para ocasiões formais", "preco": 249.90, "categoria_id": 1 },
+    { "id": 3, "nome": "Blusa Cropped Listrada", "descricao": "Blusa cropped com listras coloridas, tecido algodão", "preco": 79.90, "categoria_id": 2 },
+    { "id": 4, "nome": "Blusa de Seda Off-White", "descricao": "Blusa de seda com decote V, elegante e versátil", "preco": 159.90, "categoria_id": 2 },
+    { "id": 5, "nome": "Calça Jeans Skinny", "descricao": "Calça jeans skinny cintura alta, modelagem que valoriza a silhueta", "preco": 199.90, "categoria_id": 3 },
+    { "id": 6, "nome": "Calça Social Preta", "descricao": "Calça social preta slim fit, ideal para o ambiente de trabalho", "preco": 179.90, "categoria_id": 3 },
+    { "id": 7, "nome": "Saia Midi Plissada", "descricao": "Saia midi plissada em tecido fluido, várias cores disponíveis", "preco": 139.90, "categoria_id": 4 },
+    { "id": 8, "nome": "Saia Jeans Mini", "descricao": "Saia jeans mini com botões frontais, estilo retrô", "preco": 99.90, "categoria_id": 4 },
+    { "id": 9, "nome": "Vestido Azul Ombro a Ombro", "descricao": "Vestido azul ombro a ombro em crepe, elegante e moderno", "preco": 229.90, "categoria_id": 1 },
+    { "id": 10, "nome": "Vestido Xadrez Manga Longa", "descricao": "Vestido xadrez com manga longa, estilo casual chique", "preco": 189.90, "categoria_id": 1 },
+    { "id": 11, "nome": "Bolsa Tote Caramelo", "descricao": "Bolsa tote em couro sintético caramelo, espaçosa e resistente", "preco": 219.90, "categoria_id": 5 },
+    { "id": 12, "nome": "Cinto Trançado Preto", "descricao": "Cinto trançado em couro legítimo preto, tamanho ajustável", "preco": 59.90, "categoria_id": 5 },
+    { "id": 13, "nome": "Camisa Florida Viscose", "descricao": "Camisa estampada floral em viscose, leve e colorida", "preco": 99.90, "categoria_id": 2 },
+    { "id": 14, "nome": "Blusa Tie-Dye Manga Curta", "descricao": "Blusa tie-dye manga curta, estilo despojado e moderno", "preco": 79.90, "categoria_id": 2 },
+    { "id": 15, "nome": "Saia Longa Estampada", "descricao": "Saia longa com estampa geométrica colorida, tecido fluido", "preco": 149.90, "categoria_id": 4 },
+    { "id": 16, "nome": "Saia Assimétrica Preta", "descricao": "Saia assimétrica preta com fenda lateral, sofisticada", "preco": 129.90, "categoria_id": 4 },
+    { "id": 17, "nome": "Vestido Longo Boho", "descricao": "Vestido longo estilo boho com bordados, perfeito para festivais", "preco": 299.90, "categoria_id": 1 },
+    { "id": 18, "nome": "Blusa Regata Básica", "descricao": "Regata básica feminina em algodão, disponível em várias cores", "preco": 49.90, "categoria_id": 2 },
+    { "id": 19, "nome": "Legging Fitness", "descricao": "Legging fitness cintura alta com cós largo, tecido compressão", "preco": 99.90, "categoria_id": 3 },
+    { "id": 20, "nome": "Calça Pantalona Floral", "descricao": "Calça pantalona com estampa floral, confortável e estilosa", "preco": 169.90, "categoria_id": 3 }
+]

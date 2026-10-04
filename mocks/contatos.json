@@ -1,0 +1,7 @@
+[
+    { "id": 1, "nome": "Leticia Moura", "email": "leticia.moura@email.com", "assunto": "Parceria", "mensagem": "Olá, gostaria de discutir uma possível parceria comercial com a ClosetDrii." },
+    { "id": 2, "nome": "Bruna Fonseca", "email": "bruna.fonseca@email.com", "assunto": "Sugestão de peça", "mensagem": "Adoraria ver mais opções de vestidos plus size na loja!" },
+    { "id": 3, "nome": "Thiago Campos", "email": "thiago.campos@email.com", "assunto": "Problema no pedido", "mensagem": "Meu pedido #8 foi cancelado sem motivo aparente, podem verificar?" },
+    { "id": 4, "nome": "Tatiane Borges", "email": "tatiane@email.com", "assunto": "Troca de produto", "mensagem": "Recebi a blusa no tamanho errado, como faço para trocar?" },
+    { "id": 5, "nome": "Renata Figueiredo", "email": "renata@email.com", "assunto": "Elogio", "mensagem": "Amei a qualidade do vestido floral midi! Com certeza voltarei a comprar." }
+]

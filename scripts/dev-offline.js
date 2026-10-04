@@ -2,30 +2,49 @@
 // Uso: npm run dev:offline  (não precisa de MySQL)
 process.env.DB_DIALECT = "sqlite";
 
+const path = require("path");
 const app = require("../src/app");
-const { sequelize, Categoria, Produto } = require("../src/models");
+const {
+    sequelize,
+    Usuario,
+    Endereco,
+    Categoria,
+    Produto,
+    ProdutoVariante,
+    Venda,
+    ProdutoVenda,
+    Contato,
+    Avaliacao,
+    LogVenda,
+} = require("../src/models");
 
 const PORT = process.env.PORT || 3000;
 
+// carrega um JSON da pasta mocks/ (um arquivo por tabela, ids explícitos preservam as FKs)
+function carregarMock(tabela) {
+    return require(path.join(__dirname, "..", "mocks", `${tabela}.json`));
+}
+
 async function seed() {
-    const categorias = await Categoria.bulkCreate([
-        { nome: "Vestidos", descricao: "Vestidos para todas as ocasiões" },
-        { nome: "Blusas", descricao: "Blusas e camisas femininas" },
-        { nome: "Calças", descricao: "Calças, jeans e leggings" },
-    ]);
+    // ordem importa: pais antes dos filhos (Fks de produto_variantes -> produtos -> categorias, etc.)
+    const usuarios = await Usuario.bulkCreate(carregarMock("usuarios"));
+    const enderecos = await Endereco.bulkCreate(carregarMock("enderecos"));
+    const categorias = await Categoria.bulkCreate(carregarMock("categorias"));
+    const produtos = await Produto.bulkCreate(carregarMock("produtos"));
+    const produtoVariantes = await ProdutoVariante.bulkCreate(carregarMock("produto_variantes"));
+    const vendas = await Venda.bulkCreate(carregarMock("vendas"));
+    const produtoVendas = await ProdutoVenda.bulkCreate(carregarMock("produto_vendas"));
+    const contatos = await Contato.bulkCreate(carregarMock("contatos"));
+    const avaliacoes = await Avaliacao.bulkCreate(carregarMock("avaliacoes"));
+    const logVendas = await LogVenda.bulkCreate(carregarMock("log_vendas"));
 
-    await Produto.bulkCreate([
-        { nome: "Vestido Floral", descricao: "Vestido estampado com flores", preco: 129.9, categoria_id: categorias[0].id },
-        { nome: "Vestido Preto Básico", descricao: "Clássico vestido preto", preco: 99.9, categoria_id: categorias[0].id },
-        { nome: "Vestido Midi", descricao: "Vestido midi elegante", preco: 149.9, categoria_id: categorias[0].id },
-        { nome: "Blusa de Seda", descricao: "Blusa leve de seda", preco: 89.9, categoria_id: categorias[1].id },
-        { nome: "Camisa Branca", descricao: "Camisa social branca", preco: 79.9, categoria_id: categorias[1].id },
-        { nome: "Cropped Básico", descricao: "Cropped canelado", preco: 49.9, categoria_id: categorias[1].id },
-        { nome: "Calça Jeans Skinny", descricao: "Jeans skinny de cintura alta", preco: 119.9, categoria_id: categorias[2].id },
-        { nome: "Legging Fitness", descricao: "Legging de academia", preco: 69.9, categoria_id: categorias[2].id },
-    ]);
-
-    console.log(`Seed ok ✔ (${categorias.length} categorias, 8 produtos)`);
+    console.log(
+        `Seed ok ✔ (${usuarios.length} usuários, ${enderecos.length} endereços, ` +
+            `${categorias.length} categorias, ${produtos.length} produtos, ` +
+            `${produtoVariantes.length} variantes, ${vendas.length} vendas, ` +
+            `${produtoVendas.length} itens de venda, ${contatos.length} contatos, ` +
+            `${avaliacoes.length} avaliações, ${logVendas.length} logs de venda)`
+    );
 }
 
 async function start() {
