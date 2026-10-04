@@ -1,0 +1,22 @@
+[
+    { "id": 1, "nome": "Jedson Henrique", "email": "jedson@email.com", "senha": "$2b$10$abc123hash1", "telefone": "19987650001", "cpf": "12345678901", "perfil": "admin", "genero": "M", "dt_nascimento": "2005-03-14" },
+    { "id": 2, "nome": "Fabricio Onofre", "email": "fabricio@email.com", "senha": "$2b$10$abc123hash2", "telefone": "19987650002", "cpf": "12345678902", "perfil": "admin", "genero": "M", "dt_nascimento": "2003-07-22" },
+    { "id": 3, "nome": "Jonny Araujo", "email": "jonny@email.com", "senha": "$2b$10$abc123hash3", "telefone": "19987650003", "cpf": "12345678903", "perfil": "admin", "genero": "M", "dt_nascimento": "2003-05-30" },
+    { "id": 4, "nome": "Ana Paula Ferreira", "email": "ana.paula@email.com", "senha": "$2b$10$abc123hash4", "telefone": "11987650004", "cpf": "12345678904", "perfil": "cliente", "genero": "F", "dt_nascimento": "1998-01-20" },
+    { "id": 5, "nome": "Beatriz Costa", "email": "beatriz@email.com", "senha": "$2b$10$abc123hash5", "telefone": "11987650005", "cpf": "12345678905", "perfil": "cliente", "genero": "F", "dt_nascimento": "2000-06-15" },
+    { "id": 6, "nome": "Camila Rodrigues", "email": "camila@email.com", "senha": "$2b$10$abc123hash6", "telefone": "11987650006", "cpf": "12345678906", "perfil": "cliente", "genero": "F", "dt_nascimento": "1996-09-30" },
+    { "id": 7, "nome": "Daniela Martins", "email": "daniela@email.com", "senha": "$2b$10$abc123hash7", "telefone": "11987650007", "cpf": "12345678907", "perfil": "cliente", "genero": "F", "dt_nascimento": "1994-04-08" },
+    { "id": 8, "nome": "Eduarda Pereira", "email": "eduarda@email.com", "senha": "$2b$10$abc123hash8", "telefone": "11987650008", "cpf": "12345678908", "perfil": "cliente", "genero": "F", "dt_nascimento": "2001-12-03" },
+    { "id": 9, "nome": "Fernanda Oliveira", "email": "fernanda@email.com", "senha": "$2b$10$abc123hash9", "telefone": "11987650009", "cpf": "12345678909", "perfil": "cliente", "genero": "F", "dt_nascimento": "1999-08-17" },
+    { "id": 10, "nome": "Gabriela Santos", "email": "gabriela@email.com", "senha": "$2b$10$abc123hash0", "telefone": "11987650010", "cpf": "12345678910", "perfil": "cliente", "genero": "F", "dt_nascimento": "1997-02-25" },
+    { "id": 11, "nome": "Helena Carvalho", "email": "helena@email.com", "senha": "$2b$10$abc123hashA", "telefone": "11987650011", "cpf": "12345678911", "perfil": "cliente", "genero": "F", "dt_nascimento": "2002-05-11" },
+    { "id": 12, "nome": "Isabela Nascimento", "email": "isabela@email.com", "senha": "$2b$10$abc123hashB", "telefone": "11987650012", "cpf": "12345678912", "perfil": "cliente", "genero": "F", "dt_nascimento": "1995-10-29" },
+    { "id": 13, "nome": "Juliana Mendes", "email": "juliana@email.com", "senha": "$2b$10$abc123hashC", "telefone": "11987650013", "cpf": "12345678913", "perfil": "cliente", "genero": "F", "dt_nascimento": "1993-07-04" },
+    { "id": 14, "nome": "Karen Ribeiro", "email": "karen@email.com", "senha": "$2b$10$abc123hashD", "telefone": "11987650014", "cpf": "12345678914", "perfil": "cliente", "genero": "F", "dt_nascimento": "2000-03-18" },
+    { "id": 15, "nome": "Larissa Gomes", "email": "larissa@email.com", "senha": "$2b$10$abc123hashE", "telefone": "11987650015", "cpf": "12345678915", "perfil": "cliente", "genero": "F", "dt_nascimento": "1998-11-22" },
+    { "id": 16, "nome": "Mariana Dias", "email": "mariana@email.com", "senha": "$2b$10$abc123hashF", "telefone": "11987650016", "cpf": "12345678916", "perfil": "cliente", "genero": "F", "dt_nascimento": "1996-06-07" },
+    { "id": 17, "nome": "Natalia Araujo", "email": "natalia@email.com", "senha": "$2b$10$abc123hashG", "telefone": "11987650017", "cpf": "12345678917", "perfil": "cliente", "genero": "F", "dt_nascimento": "2001-09-14" },
+    { "id": 18, "nome": "Patricia Vieira", "email": "patricia@email.com", "senha": "$2b$10$abc123hashH", "telefone": "11987650018", "cpf": "12345678918", "perfil": "cliente", "genero": "F", "dt_nascimento": "1994-01-31" },
+    { "id": 19, "nome": "Rafaela Teixeira", "email": "rafaela@email.com", "senha": "$2b$10$abc123hashI", "telefone": "11987650019", "cpf": "12345678919", "perfil": "cliente", "genero": "F", "dt_nascimento": "1999-04-26" },
+    { "id": 20, "nome": "Sabrina Cardoso", "email": "sabrina@email.com", "senha": "$2b$10$abc123hashJ", "telefone": "11987650020", "cpf": "12345678920", "perfil": "cliente", "genero": "F", "dt_nascimento": "2003-08-09" }
+]

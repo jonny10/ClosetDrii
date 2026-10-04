@@ -1,0 +1,8 @@
+[
+    { "id": 1, "venda_id": 4, "status_anterior": "pendente", "status_novo": "pago", "alterado_em": "2026-09-18 14:32:00" },
+    { "id": 2, "venda_id": 5, "status_anterior": "pendente", "status_novo": "pago", "alterado_em": "2026-09-20 09:11:00" },
+    { "id": 3, "venda_id": 5, "status_anterior": "pago", "status_novo": "enviado", "alterado_em": "2026-09-21 16:47:00" },
+    { "id": 4, "venda_id": 8, "status_anterior": "pendente", "status_novo": "cancelado", "alterado_em": "2026-09-22 11:05:00" },
+    { "id": 5, "venda_id": 10, "status_anterior": "pendente", "status_novo": "enviado", "alterado_em": "2026-09-24 10:20:00" },
+    { "id": 6, "venda_id": 12, "status_anterior": "pendente", "status_novo": "pago", "alterado_em": "2026-09-28 18:03:00" }
+]

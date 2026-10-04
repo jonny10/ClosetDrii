@@ -1,0 +1,7 @@
+[
+    { "id": 1, "nome": "Vestidos", "descricao": "Vestidos casuais, festivos e de trabalho para todos os estilos" },
+    { "id": 2, "nome": "Blusas", "descricao": "Blusas, camisetas e tops femininos" },
+    { "id": 3, "nome": "Calças", "descricao": "Calças jeans, sociais e leggings femininas" },
+    { "id": 4, "nome": "Saias", "descricao": "Saias curtas, midi e longas" },
+    { "id": 5, "nome": "Acessórios", "descricao": "Bolsas, cintos, lenços e bijuterias" }
+]

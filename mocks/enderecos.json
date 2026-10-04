@@ -1,0 +1,22 @@
+[
+    { "id": 1, "usuario_id": 1, "rua": "R. Sud Mennuci", "numero": "455", "bairro": "Jardim Aurélia", "cidade": "Campinas", "estado": "SP", "cep": "13033055", "complemento": "Apto 401" },
+    { "id": 2, "usuario_id": 2, "rua": "Rua Coronel Quirino", "numero": "1500", "bairro": "Taquaral", "cidade": "Campinas", "estado": "SP", "cep": "13025060", "complemento": null },
+    { "id": 3, "usuario_id": 3, "rua": "Rua Conceição", "numero": "200", "bairro": "Centro", "cidade": "Campinas", "estado": "SP", "cep": "13010050", "complemento": null },
+    { "id": 4, "usuario_id": 4, "rua": "Av. José de Souza Campos", "numero": "1200", "bairro": "Nova Campinas", "cidade": "Campinas", "estado": "SP", "cep": "13092123", "complemento": "Apto 82" },
+    { "id": 5, "usuario_id": 5, "rua": "Rua Barão de Jaguara", "numero": "901", "bairro": "Centro", "cidade": "Campinas", "estado": "SP", "cep": "13015001", "complemento": null },
+    { "id": 6, "usuario_id": 6, "rua": "Rua Culto à Ciência", "numero": "340", "bairro": "Botafogo", "cidade": "Campinas", "estado": "SP", "cep": "13020060", "complemento": null },
+    { "id": 7, "usuario_id": 7, "rua": "Rua Sete de Setembro", "numero": "23", "bairro": "Centro", "cidade": "Belo Horizonte", "estado": "MG", "cep": "30130071", "complemento": null },
+    { "id": 8, "usuario_id": 8, "rua": "Rua das Palmeiras", "numero": "89", "bairro": "Boa Viagem", "cidade": "Recife", "estado": "PE", "cep": "51020010", "complemento": "Apto 301" },
+    { "id": 9, "usuario_id": 9, "rua": "Av. Atlântica", "numero": "1500", "bairro": "Copacabana", "cidade": "Rio de Janeiro", "estado": "RJ", "cep": "22021001", "complemento": null },
+    { "id": 10, "usuario_id": 10, "rua": "Rua Augusta", "numero": "320", "bairro": "Consolação", "cidade": "São Paulo", "estado": "SP", "cep": "01305000", "complemento": "Sala 5" },
+    { "id": 11, "usuario_id": 11, "rua": "Rua Tiradentes", "numero": "67", "bairro": "Centro", "cidade": "Porto Alegre", "estado": "RS", "cep": "90030070", "complemento": null },
+    { "id": 12, "usuario_id": 12, "rua": "Av. Getúlio Vargas", "numero": "900", "bairro": "Funcionários", "cidade": "Belo Horizonte", "estado": "MG", "cep": "30112020", "complemento": "Apto 12" },
+    { "id": 13, "usuario_id": 13, "rua": "Rua Padre Chagas", "numero": "150", "bairro": "Moinhos de Vento", "cidade": "Porto Alegre", "estado": "RS", "cep": "90570080", "complemento": null },
+    { "id": 14, "usuario_id": 14, "rua": "Rua Oscar Freire", "numero": "210", "bairro": "Jardins", "cidade": "São Paulo", "estado": "SP", "cep": "01426001", "complemento": null },
+    { "id": 15, "usuario_id": 15, "rua": "Av. Boa Viagem", "numero": "3300", "bairro": "Boa Viagem", "cidade": "Recife", "estado": "PE", "cep": "51111000", "complemento": "Cobertura" },
+    { "id": 16, "usuario_id": 16, "rua": "Rua das Orquídeas", "numero": "55", "bairro": "Alphaville", "cidade": "Barueri", "estado": "SP", "cep": "06453000", "complemento": null },
+    { "id": 17, "usuario_id": 17, "rua": "Rua Visconde de Pirajá", "numero": "400", "bairro": "Ipanema", "cidade": "Rio de Janeiro", "estado": "RJ", "cep": "22410003", "complemento": "Apto 201" },
+    { "id": 18, "usuario_id": 18, "rua": "Av. Independência", "numero": "730", "bairro": "Independência", "cidade": "Porto Alegre", "estado": "RS", "cep": "90035075", "complemento": null },
+    { "id": 19, "usuario_id": 19, "rua": "Rua Halfeld", "numero": "480", "bairro": "Centro", "cidade": "Juiz de Fora", "estado": "MG", "cep": "36010001", "complemento": null },
+    { "id": 20, "usuario_id": 20, "rua": "Rua Barão de Itapetininga", "numero": "60", "bairro": "República", "cidade": "São Paulo", "estado": "SP", "cep": "01042000", "complemento": "Loja 3" }
+]

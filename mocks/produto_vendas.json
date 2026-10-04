@@ -1,0 +1,20 @@
+[
+    { "id": 1, "produto_variante_id": 1, "venda_id": 1, "quantidade": 1, "valor": 189.90 },
+    { "id": 2, "produto_variante_id": 7, "venda_id": 1, "quantidade": 1, "valor": 79.90 },
+    { "id": 3, "produto_variante_id": 5, "venda_id": 2, "quantidade": 1, "valor": 249.90 },
+    { "id": 4, "produto_variante_id": 9, "venda_id": 3, "quantidade": 1, "valor": 199.90 },
+    { "id": 5, "produto_variante_id": 8, "venda_id": 4, "quantidade": 2, "valor": 159.80 },
+    { "id": 6, "produto_variante_id": 4, "venda_id": 4, "quantidade": 1, "valor": 159.90 },
+    { "id": 7, "produto_variante_id": 1, "venda_id": 5, "quantidade": 1, "valor": 189.90 },
+    { "id": 8, "produto_variante_id": 14, "venda_id": 6, "quantidade": 1, "valor": 229.90 },
+    { "id": 9, "produto_variante_id": 12, "venda_id": 7, "quantidade": 1, "valor": 59.90 },
+    { "id": 10, "produto_variante_id": 23, "venda_id": 7, "quantidade": 1, "valor": 119.90 },
+    { "id": 11, "produto_variante_id": 14, "venda_id": 8, "quantidade": 1, "valor": 229.90 },
+    { "id": 12, "produto_variante_id": 17, "venda_id": 9, "quantidade": 2, "valor": 199.80 },
+    { "id": 13, "produto_variante_id": 21, "venda_id": 9, "quantidade": 1, "valor": 119.90 },
+    { "id": 14, "produto_variante_id": 16, "venda_id": 10, "quantidade": 1, "valor": 149.90 },
+    { "id": 15, "produto_variante_id": 10, "venda_id": 11, "quantidade": 1, "valor": 199.90 },
+    { "id": 16, "produto_variante_id": 13, "venda_id": 11, "quantidade": 1, "valor": 259.90 },
+    { "id": 17, "produto_variante_id": 19, "venda_id": 12, "quantidade": 1, "valor": 149.90 },
+    { "id": 18, "produto_variante_id": 22, "venda_id": 13, "quantidade": 2, "valor": 99.80 }
+]
