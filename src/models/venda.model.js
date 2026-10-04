@@ -24,6 +24,7 @@ const Venda = sequelize.define(
 Venda.associate = (models) => {
     Venda.belongsTo(models.Usuario, { foreignKey: "usuario_id", as: "usuario" });
     Venda.belongsTo(models.Endereco, { foreignKey: "endereco_entrega_id", as: "endereco_entrega" });
+    Venda.hasMany(models.ProdutoVenda, { foreignKey: "venda_id", as: "itens" });
 };
 
 module.exports = Venda;

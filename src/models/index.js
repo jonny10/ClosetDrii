@@ -6,10 +6,11 @@ const Categoria = require("./categoria.model");
 const Produto = require("./produto.model");
 const ProdutoVariante = require("./produto_variante.model");
 const Venda = require("./venda.model");
+const ProdutoVenda = require("./produto_venda.model");
 
 // ...demais models
 
-const models = { Usuario, Endereco, Categoria, Produto, ProdutoVariante, Venda };
+const models = { Usuario, Endereco, Categoria, Produto, ProdutoVariante, Venda, ProdutoVenda };
 
 // 1) todos os models já foram carregados acima
 // 2) agora sim executa as associações
