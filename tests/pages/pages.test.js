@@ -49,3 +49,42 @@ describe("páginas renderizadas", () => {
         expect(res.text).toContain("Página não encontrada");
     });
 });
+
+describe("rotas protegidas (com sessão)", () => {
+    beforeAll(async () => {
+        await sequelize.sync({ force: true });
+        await seed();
+    });
+
+    async function agenteLogado(email, senha) {
+        const agente = request.agent(app);
+        const login = await agente.post("/api/auth/login").send({ email, senha });
+        expect(login.status).toBe(200);
+        return agente;
+    }
+
+    it("cliente acessa /profile mas é barrado de /vendas e /contact_adm", async () => {
+        const cliente = await agenteLogado("ana.paula@email.com", "123456");
+
+        const perfil = await cliente.get("/profile");
+        expect(perfil.status).toBe(200);
+
+        const vendas = await cliente.get("/vendas");
+        expect(vendas.status).toBe(302);
+        expect(vendas.headers.location).toBe("/");
+
+        const contatoAdm = await cliente.get("/contact_adm");
+        expect(contatoAdm.status).toBe(302);
+        expect(contatoAdm.headers.location).toBe("/");
+    });
+
+    it("admin acessa /vendas e /contact_adm", async () => {
+        const admin = await agenteLogado("fabricio@email.com", "123456");
+
+        const vendas = await admin.get("/vendas");
+        expect(vendas.status).toBe(200);
+
+        const contatoAdm = await admin.get("/contact_adm");
+        expect(contatoAdm.status).toBe(200);
+    });
+});
