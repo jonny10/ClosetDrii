@@ -31,11 +31,22 @@ describe("GET /api/categorias", () => {
         });
     });
 
+    it("retorna a categoria por id", async () => {
+        const res = await request(app).get("/api/categorias/1");
+
+        expect(res.status).toBe(200);
+        expect(res.body).toEqual({
+            id: 1,
+            nome: "Vestidos",
+            descricao: expect.any(String),
+        });
+    });
+
     it("retorna 404 para categoria inexistente", async () => {
         const res = await request(app).get("/api/categorias/999");
         expect(res.status).toBe(404);
-        expect(res.body).toMatchObject({
-            message: "Categoria não encontrada",
+        expect(res.body).toEqual({
+            error: "Categoria não encontrada",
         });
     });
 });

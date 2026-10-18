@@ -81,20 +81,9 @@ async function listarVariantes(produtoId) {
     }));
 }
 
-// GET /api/categorias
-async function listarCategorias() {
-    const categorias = await Categoria.findAll({ order: [["nome", "ASC"]] });
-    return categorias.map((c) => ({
-        id: c.id,
-        nome: c.nome,
-        descricao: c.descricao,
-    }));
-}
-
 module.exports = {
     listarProdutos,
     buscarProduto,
     listarVariantes,
-    listarCategorias,
     formatarProduto,
 };

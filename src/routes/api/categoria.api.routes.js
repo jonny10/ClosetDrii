@@ -5,5 +5,6 @@ const categoriasController = require("../../controllers/api/categorias.api.contr
 const logger = require("../../middlewares/logger.middleware");
 
 router.get("/categorias", logger, categoriasController.listarCategorias);
+router.get("/categorias/:id", logger, categoriasController.buscarCategoria);
 
 module.exports = router;
