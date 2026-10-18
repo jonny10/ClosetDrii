@@ -26,7 +26,6 @@ async function buscarPorEmail(email) {
 
 // Compara a senha enviada com o hash gravado no banco
 async function senhaConfere(usuario, senha) {
-    console.log(usuario.senha, senha);
     return bcrypt.compare(senha, usuario.senha);
 }
 

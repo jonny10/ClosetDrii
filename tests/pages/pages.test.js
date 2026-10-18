@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect, beforeAll, vi } from "vitest";
 import request from "supertest";
 import { createRequire } from "node:module";
 
@@ -6,6 +6,8 @@ const require = createRequire(import.meta.url);
 const app = require("../../src/app.js");
 const { sequelize } = require("../../src/models/index.js");
 const { seed } = require("../../src/seed.js");
+const requireAuth = require("../../src/middlewares/require-auth.middleware.js");
+const requireAdmin = require("../../src/middlewares/require-admin.middleware.js");
 
 describe("páginas renderizadas", () => {
     beforeAll(async () => {
@@ -63,28 +65,170 @@ describe("rotas protegidas (com sessão)", () => {
         return agente;
     }
 
-    it("cliente acessa /profile mas é barrado de /vendas e /contact_adm", async () => {
+    it.each(["/profile", "/historico", "/dados"])(
+        "cliente logado acessa %s (requireAuth)",
+        async (rota) => {
+            const cliente = await agenteLogado("ana.paula@email.com", "123456");
+
+            const res = await cliente.get(rota);
+            expect(res.status).toBe(200);
+        }
+    );
+
+    it.each(["/vendas", "/contact_adm"])(
+        "cliente logado é barrado de %s (requireAdmin) → 302 /",
+        async (rota) => {
+            const cliente = await agenteLogado("ana.paula@email.com", "123456");
+
+            const res = await cliente.get(rota);
+            expect(res.status).toBe(302);
+            expect(res.headers.location).toBe("/");
+        }
+    );
+
+    it.each(["/vendas", "/contact_adm", "/profile", "/historico", "/dados"])(
+        "admin logado acessa tudo %s",
+        async (rota) => {
+            const admin = await agenteLogado("fabricio@email.com", "123456");
+
+            const res = await admin.get(rota);
+            expect(res.status).toBe(200);
+        }
+    );
+
+    it("após logout, rotas protegidas voltam a redirecionar para /login", async () => {
         const cliente = await agenteLogado("ana.paula@email.com", "123456");
 
+        const logout = await cliente.post("/api/auth/logout");
+        expect(logout.status).toBe(200);
+
         const perfil = await cliente.get("/profile");
-        expect(perfil.status).toBe(200);
+        expect(perfil.status).toBe(302);
+        expect(perfil.headers.location).toBe("/login");
 
         const vendas = await cliente.get("/vendas");
         expect(vendas.status).toBe(302);
-        expect(vendas.headers.location).toBe("/");
+        expect(vendas.headers.location).toBe("/login");
+    });
+});
 
-        const contatoAdm = await cliente.get("/contact_adm");
-        expect(contatoAdm.status).toBe(302);
-        expect(contatoAdm.headers.location).toBe("/");
+describe("middlewares requireAuth/requireAdmin (branches)", () => {
+    function mockReq({ session = {}, originalUrl = "/" }) {
+        return { session, originalUrl };
+    }
+
+    function mockRes() {
+        const res = { redirect: vi.fn(), status: vi.fn(), json: vi.fn() };
+        res.status.mockReturnValue(res);
+        return res;
+    }
+
+    it("requireAuth: API sem sessão → 401 JSON", () => {
+        const req = mockReq({ originalUrl: "/api/alguma-coisa" });
+        const res = mockRes();
+        const next = vi.fn();
+
+        requireAuth(req, res, next);
+
+        expect(res.status).toHaveBeenCalledWith(401);
+        expect(res.json).toHaveBeenCalledWith({ error: "Não autenticado" });
+        expect(next).not.toHaveBeenCalled();
     });
 
-    it("admin acessa /vendas e /contact_adm", async () => {
-        const admin = await agenteLogado("fabricio@email.com", "123456");
+    it("requireAuth: página sem sessão → redirect /login", () => {
+        const req = mockReq({ originalUrl: "/profile" });
+        const res = mockRes();
+        const next = vi.fn();
 
-        const vendas = await admin.get("/vendas");
-        expect(vendas.status).toBe(200);
+        requireAuth(req, res, next);
 
-        const contatoAdm = await admin.get("/contact_adm");
-        expect(contatoAdm.status).toBe(200);
+        expect(res.redirect).toHaveBeenCalledWith("/login");
+        expect(next).not.toHaveBeenCalled();
+    });
+
+    it("requireAuth: com sessão → next()", () => {
+        const req = mockReq({ session: { isLoggedIn: true, user: { perfil: "cliente" } } });
+        const res = mockRes();
+        const next = vi.fn();
+
+        requireAuth(req, res, next);
+
+        expect(next).toHaveBeenCalled();
+    });
+
+    it("requireAdmin: API sem sessão → 401 JSON", () => {
+        const req = mockReq({ originalUrl: "/api/admin/vendas" });
+        const res = mockRes();
+        const next = vi.fn();
+
+        requireAdmin(req, res, next);
+
+        expect(res.status).toHaveBeenCalledWith(401);
+        expect(res.json).toHaveBeenCalledWith({ error: "Não autenticado" });
+    });
+
+    it("requireAdmin: página sem sessão → redirect /login", () => {
+        const req = mockReq({ originalUrl: "/vendas" });
+        const res = mockRes();
+        const next = vi.fn();
+
+        requireAdmin(req, res, next);
+
+        expect(res.redirect).toHaveBeenCalledWith("/login");
+    });
+
+    it("requireAdmin: API com cliente → 403 JSON", () => {
+        const req = mockReq({
+            session: { isLoggedIn: true, user: { perfil: "cliente" } },
+            originalUrl: "/api/admin/vendas",
+        });
+        const res = mockRes();
+        const next = vi.fn();
+
+        requireAdmin(req, res, next);
+
+        expect(res.status).toHaveBeenCalledWith(403);
+        expect(res.json).toHaveBeenCalledWith({ error: "Acesso restrito a administradores" });
+        expect(next).not.toHaveBeenCalled();
+    });
+
+    it("requireAdmin: página com cliente → redirect /", () => {
+        const req = mockReq({
+            session: { isLoggedIn: true, user: { perfil: "cliente" } },
+            originalUrl: "/vendas",
+        });
+        const res = mockRes();
+        const next = vi.fn();
+
+        requireAdmin(req, res, next);
+
+        expect(res.redirect).toHaveBeenCalledWith("/");
+    });
+
+    it("requireAdmin: API com admin → next()", () => {
+        const req = mockReq({
+            session: { isLoggedIn: true, user: { perfil: "admin" } },
+            originalUrl: "/api/admin/vendas",
+        });
+        const res = mockRes();
+        const next = vi.fn();
+
+        requireAdmin(req, res, next);
+
+        expect(next).toHaveBeenCalled();
+    });
+
+    it("requireAdmin: sessão logada SEM user (edge) → 403 JSON em API", () => {
+        const req = mockReq({
+            session: { isLoggedIn: true },
+            originalUrl: "/api/admin/vendas",
+        });
+        const res = mockRes();
+        const next = vi.fn();
+
+        requireAdmin(req, res, next);
+
+        expect(res.status).toHaveBeenCalledWith(403);
+        expect(next).not.toHaveBeenCalled();
     });
 });
