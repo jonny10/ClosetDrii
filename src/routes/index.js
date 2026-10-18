@@ -19,5 +19,6 @@ router.use(require("./pages/vendas.routes"));
 // API: CRUDs do banco, um arquivo por entidade
 router.use("/api", require("./api/produto.api.routes"));
 router.use("/api", require("./api/categoria.api.routes"));
+router.use("/api", require("./api/usuario.api.routes"));
 
 module.exports = router;
