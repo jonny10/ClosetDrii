@@ -47,24 +47,41 @@
       <h2>Destaques da Semana</h2>
       <a href="/produtos">Ver todos</a>
     </div>
-    <div id="product-best-seller" class="product-grid"></div>
-
-    <div class="section-title"><h2>Destaques da Semana</h2><a href="/produtos">Ver todos</a></div>
-      <div class="product-grid">
-        {{#each destaques}}
-          <div class="product-card-component">
-            <div class="image-wrapper">
-              <img class="produto-img" src="{{this.imagem}}" alt="{{this.nome}}" />
-              <span class="product-badge">Novo</span>
-            </div>
-            <div class="card-info">
-              <h3 class="produto-nome">{{this.nome}}</h3>
-              <p class="produto-preco">R$ {{this.preco}}</p>
-            </div>
-            <button class="add-btn">Ver Detalhes</button>
+    <div class="product-grid">
+      {{#each destaques}}
+        <div class="product-card-component" data-id="{{this.id}}">
+          <div class="image-wrapper">
+            <img class="produto-img" src="{{this.imagem}}" alt="{{this.nome}}" />
+            <span class="product-badge">Novo</span>
           </div>
-        {{/each}}
-  </div>
+          <div class="card-info">
+            <h3 class="produto-nome">{{this.nome}}</h3>
+            <p class="produto-preco">R$ {{this.preco}}</p>
+          </div>
+          <button class="add-btn">Ver Detalhes</button>
+        </div>
+      {{/each}}
+    </div>
+
+    <div class="section-title">
+      <h2>Ofertas</h2>
+      <a href="/produtos">Ver todos</a>
+    </div>
+    <div class="product-grid">
+      {{#each ofertas}}
+        <div class="product-card-component" data-id="{{this.id}}">
+          <div class="image-wrapper">
+            <img class="produto-img" src="{{this.imagem}}" alt="{{this.nome}}" />
+            <span class="product-badge">Oferta</span>
+          </div>
+          <div class="card-info">
+            <h3 class="produto-nome">{{this.nome}}</h3>
+            <p class="produto-preco">R$ {{this.preco}}</p>
+          </div>
+          <button class="add-btn">Ver Detalhes</button>
+        </div>
+      {{/each}}
+    </div>
 
     <template id="template-card">
       <div class="product-card-component">
