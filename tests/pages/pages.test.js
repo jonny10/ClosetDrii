@@ -25,11 +25,20 @@ describe("páginas renderizadas", () => {
         expect((res.text.match(/R\$ \d+,\d{2}/g) || []).length).toBeGreaterThanOrEqual(4);
     });
 
-    it.each(["/about", "/contact", "/login", "/signup", "/profile", "/historico", "/dados", "/produtos", "/catalogo", "/cart", "/vendas", "/contact_adm"])(
+    it.each(["/about", "/contact", "/login", "/signup", "/produtos", "/catalogo", "/cart"])(
         "GET %s responde 200",
         async (rota) => {
             const res = await request(app).get(rota);
             expect(res.status).toBe(200);
+        }
+    );
+
+    it.each(["/profile", "/historico", "/dados", "/vendas", "/contact_adm"])(
+        "GET %s redireciona para /login sem sessão",
+        async (rota) => {
+            const res = await request(app).get(rota);
+            expect(res.status).toBe(302);
+            expect(res.headers.location).toBe("/login");
         }
     );
 

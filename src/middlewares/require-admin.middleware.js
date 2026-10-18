@@ -7,7 +7,7 @@ function requireAdmin(req, res, next) {
         return next();
     }
 
-    if (!isLoggedIn) {
+    if (!req.session?.isLoggedIn) {
         if (req.originalUrl.startsWith("/api")) {
             return res.status(401).json({ error: "Não autenticado" });
         }
