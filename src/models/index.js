@@ -11,12 +11,8 @@ const LogVenda = require("./log_venda.model");
 const Avaliacao = require("./avaliacao.model");
 const Contato = require("./contato.model");
 
-// ...demais models
-
 const models = { Usuario, Endereco, Categoria, Produto, ProdutoVariante, Venda, ProdutoVenda, LogVenda, Avaliacao, Contato };
 
-// 1) todos os models já foram carregados acima
-// 2) agora sim executa as associações
 Object.values(models).forEach((model) => {
     if (typeof model.associate === "function") {
         model.associate(models);
