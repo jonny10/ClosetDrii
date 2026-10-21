@@ -1,8 +1,8 @@
 [
     { "id": 1, "nome": "Jedson Henrique", "email": "jedson@email.com", "senha": "$2b$10$abc123hash1", "telefone": "19987650001", "cpf": "12345678901", "perfil": "admin", "genero": "M", "dt_nascimento": "2005-03-14" },
-    { "id": 2, "nome": "Fabricio Onofre", "email": "fabricio@email.com", "senha": "$2b$10$abc123hash2", "telefone": "19987650002", "cpf": "12345678902", "perfil": "admin", "genero": "M", "dt_nascimento": "2003-07-22" },
+    { "id": 2, "nome": "Fabricio Onofre", "email": "fabricio@email.com", "senha": "$2b$10$vY2O1PpkrZyDlGFPplYRxewQWhsu3cNDKUegtxav1H2aBgX283Ncq", "telefone": "19987650002", "cpf": "12345678902", "perfil": "admin", "genero": "M", "dt_nascimento": "2003-07-22" },
     { "id": 3, "nome": "Jonny Araujo", "email": "jonny@email.com", "senha": "$2b$10$abc123hash3", "telefone": "19987650003", "cpf": "12345678903", "perfil": "admin", "genero": "M", "dt_nascimento": "2003-05-30" },
-    { "id": 4, "nome": "Ana Paula Ferreira", "email": "ana.paula@email.com", "senha": "$2b$10$abc123hash4", "telefone": "11987650004", "cpf": "12345678904", "perfil": "cliente", "genero": "F", "dt_nascimento": "1998-01-20" },
+    { "id": 4, "nome": "Ana Paula Ferreira", "email": "ana.paula@email.com", "senha": "$2b$10$vY2O1PpkrZyDlGFPplYRxewQWhsu3cNDKUegtxav1H2aBgX283Ncq", "telefone": "11987650004", "cpf": "12345678904", "perfil": "cliente", "genero": "F", "dt_nascimento": "1998-01-20" },
     { "id": 5, "nome": "Beatriz Costa", "email": "beatriz@email.com", "senha": "$2b$10$abc123hash5", "telefone": "11987650005", "cpf": "12345678905", "perfil": "cliente", "genero": "F", "dt_nascimento": "2000-06-15" },
     { "id": 6, "nome": "Camila Rodrigues", "email": "camila@email.com", "senha": "$2b$10$abc123hash6", "telefone": "11987650006", "cpf": "12345678906", "perfil": "cliente", "genero": "F", "dt_nascimento": "1996-09-30" },
     { "id": 7, "nome": "Daniela Martins", "email": "daniela@email.com", "senha": "$2b$10$abc123hash7", "telefone": "11987650007", "cpf": "12345678907", "perfil": "cliente", "genero": "F", "dt_nascimento": "1994-04-08" },

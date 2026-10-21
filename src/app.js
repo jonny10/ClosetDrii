@@ -1,5 +1,6 @@
 const path = require("path");
 const express = require("express");
+const session = require("express-session");
 const { engine } = require("express-handlebars");
 const routes = require("./routes");
 
@@ -14,6 +15,11 @@ app.set("views", path.join(__dirname, "views"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // formulários HTML (login, cadastro)
 app.use(express.static(path.join(__dirname, "..", "public")));
+app.use(session({
+    secret: process.env.SESSION_SECRET || "closetdrii-session-dev",
+    resave: false,
+    saveUninitialized: false,
+}));
 
 // --- Disponibiliza dados p/ todas as views (ex.: usuário logado) ---
 app.use((req, res, next) => {
