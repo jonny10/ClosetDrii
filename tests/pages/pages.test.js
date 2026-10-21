@@ -21,10 +21,11 @@ describe("páginas renderizadas", () => {
         expect(res.status).toBe(200);
         expect(res.text).toContain("Closet Drii");
         expect(res.text).toContain("Destaques da Semana");
-        // 4 cards reais (destaques) + 1 do <template> de clonagem do JS
-        expect((res.text.match(/product-card-component/g) || []).length).toBe(5);
+        expect(res.text).toContain("Ofertas");
+        // 4 cards de destaques + 4 de ofertas + 1 do <template> de clonagem do JS
+        expect((res.text.match(/product-card-component/g) || []).length).toBe(9);
         // preços formatados pt-BR (ex.: R$ 129,90)
-        expect((res.text.match(/R\$ \d+,\d{2}/g) || []).length).toBeGreaterThanOrEqual(4);
+        expect((res.text.match(/R\$ \d+,\d{2}/g) || []).length).toBeGreaterThanOrEqual(8);
     });
 
     it.each(["/about", "/contact", "/login", "/signup", "/produtos", "/catalogo", "/cart"])(
