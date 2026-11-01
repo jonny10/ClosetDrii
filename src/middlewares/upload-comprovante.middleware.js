@@ -35,6 +35,13 @@ const upload = multer({
 
 // Envolve o multer pra responder 400 JSON com mensagem em PT (sem cair no handler 500)
 function uploadComprovante(req, res, next) {
+    // barra antes do multer quando o Content-Length já estoura o limite —
+    // evita que o multer grave um arquivo parcial em disco
+    const contentLength = Number(req.headers["content-length"]);
+    if (Number.isFinite(contentLength) && contentLength > 5 * 1024 * 1024) {
+        return res.status(400).json({ error: "Comprovante deve ter no máximo 5MB" });
+    }
+
     upload.single("comprovante")(req, res, (err) => {
         if (err) {
             const message =
@@ -50,5 +57,14 @@ function uploadComprovante(req, res, next) {
         next();
     });
 }
+
+// Converte a URL pública (/uploads/comprovantes/x.png) no caminho absoluto do
+// arquivo no disco; null pra URL que não pertence ao diretório de comprovantes
+uploadComprovante.caminhoComprovante = (url) => {
+    if (!url || typeof url !== "string" || !url.startsWith("/uploads/comprovantes/")) {
+        return null;
+    }
+    return path.join(UPLOADS_DIR, path.basename(url));
+};
 
 module.exports = uploadComprovante;
