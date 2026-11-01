@@ -9,6 +9,9 @@ function formatarUsuario(usuario) {
         email: usuario.email,
         perfil: usuario.perfil,
         telefone: usuario.telefone,
+        cpf: usuario.cpf,
+        genero: usuario.genero,
+        dt_nascimento: usuario.dt_nascimento,
     };
 }
 
@@ -29,9 +32,29 @@ async function senhaConfere(usuario, senha) {
     return bcrypt.compare(senha, usuario.senha);
 }
 
+// PATCH /api/usuarios/me — atualiza apenas os campos permitidos (whitelist)
+// que vieram definidos no payload; null se o usuário não existir.
+async function atualizarDados(id, dados = {}) {
+    const usuario = await Usuario.findByPk(id);
+    if (!usuario) return null;
+
+    const campos = { nome: "nome", telefone: "telefone", cpf: "cpf", dt_nascimento: "dt_nascimento", genero: "genero" };
+    const atualizacoes = {};
+    for (const [chave, coluna] of Object.entries(campos)) {
+        if (dados[chave] !== undefined) atualizacoes[coluna] = dados[chave];
+    }
+
+    if (Object.keys(atualizacoes).length > 0) {
+        await usuario.update(atualizacoes);
+    }
+
+    return formatarUsuario(usuario);
+}
+
 module.exports = {
     criarUsuario,
     buscarPorEmail,
     senhaConfere,
+    atualizarDados,
     formatarUsuario,
 };

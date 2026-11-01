@@ -7,7 +7,14 @@ const routes = require("./routes");
 const app = express();
 
 // --- View engine (Handlebars) ---
-app.engine("handlebars", engine({ defaultLayout: "main" }));
+const hbs = engine({
+    defaultLayout: "main",
+    helpers: {
+        // igualdade estrita p/ atributos condicionais (ex.: selected do select)
+        eq: (a, b) => a === b,
+    },
+});
+app.engine("handlebars", hbs);
 app.set("view engine", "handlebars");
 app.set("views", path.join(__dirname, "views"));
 
