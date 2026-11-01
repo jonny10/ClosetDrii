@@ -73,8 +73,71 @@ async function logout(req, res, next) {
     });
 }
 
+// PATCH /api/usuarios/me — valida e atualiza os dados do usuário logado.
+// Só aceita os campos editáveis do perfil; o id vem da sessão (nunca do body).
+async function atualizarMeusDados(req, res, next) {
+    try {
+        const { nome, telefone, cpf, dt_nascimento, genero } = req.body || {};
+
+        if (nome !== undefined && (!nome || !String(nome).trim())) {
+            return res.status(400).json({ error: "Nome é obrigatório" });
+        }
+
+        const apenasDigitos = (valor) => String(valor ?? "").replace(/\D/g, "");
+        if (telefone !== undefined) {
+            const tel = apenasDigitos(telefone);
+            if (tel !== "" && (tel.length < 10 || tel.length > 11)) {
+                return res.status(400).json({ error: "Telefone inválido" });
+            }
+        }
+        if (cpf !== undefined) {
+            const cpfLimpo = apenasDigitos(cpf);
+            if (cpfLimpo !== "" && cpfLimpo.length !== 11) {
+                return res.status(400).json({ error: "CPF deve ter 11 dígitos" });
+            }
+        }
+        if (dt_nascimento !== undefined && dt_nascimento !== null && dt_nascimento !== "") {
+            const data = new Date(`${dt_nascimento}T00:00:00Z`);
+            if (Number.isNaN(data.getTime()) || data.toISOString().slice(0, 10) !== dt_nascimento) {
+                return res.status(400).json({ error: "Data de nascimento inválida (use AAAA-MM-DD)" });
+            }
+        }
+        if (genero !== undefined && genero !== null && genero !== "" && !["M", "F", "N/I"].includes(genero)) {
+            return res.status(400).json({ error: "Gênero inválido" });
+        }
+
+        const camposPermitidos = ["nome", "telefone", "cpf", "dt_nascimento", "genero"];
+        const chavesRecebidas = Object.keys(req.body || {});
+        const desconhecidos = chavesRecebidas.filter((k) => !camposPermitidos.includes(k));
+        if (desconhecidos.length > 0) {
+            return res.status(400).json({ error: `Campo não permitido: ${desconhecidos[0]}` });
+        }
+
+        const usuario = await authService.atualizarDados(req.session.user.id, {
+            nome: nome !== undefined ? String(nome).trim() : undefined,
+            telefone: telefone !== undefined ? (apenasDigitos(telefone) || null) : undefined,
+            cpf: cpf !== undefined ? (apenasDigitos(cpf) || null) : undefined,
+            dt_nascimento: dt_nascimento !== undefined ? (dt_nascimento || null) : undefined,
+            genero: genero !== undefined ? (genero || null) : undefined,
+        });
+
+        if (!usuario) {
+            req.session.destroy(() => {});
+            return res.status(401).json({ error: "Não autenticado" });
+        }
+
+        // mantém o snapshot da sessão sincronizado (nome no header, por exemplo)
+        req.session.user = usuario;
+
+        return res.json(usuario);
+    } catch (err) {
+        next(err);
+    }
+}
+
 module.exports = {
     cadastrar,
     login,
     logout,
+    atualizarMeusDados,
 };

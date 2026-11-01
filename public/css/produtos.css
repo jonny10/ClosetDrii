@@ -80,7 +80,6 @@ body {
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   position: sticky;
-  top: 130px; /* Previne que suma sob o header fixo ao rolar */
 }
 
 .filter-box {

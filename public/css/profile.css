@@ -16,8 +16,7 @@
   display: grid;
   grid-template-columns: 320px 1fr;
   gap: 32px;
-  padding-top: 120px; /* Margem de segurança para o header fixo flutuante */
-  align-items: start;
+  padding: 32px;
 }
 
 /* SIDEBAR ESQUERDA */
