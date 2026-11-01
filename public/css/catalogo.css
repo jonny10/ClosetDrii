@@ -213,10 +213,43 @@ body {
   background: white;
   width: 100%;
   max-width: 600px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
   border-radius: var(--radius);
   box-shadow: 0 24px 60px rgba(191, 94, 129, 0.18);
   padding: 36px;
   animation: fadeInModal 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Modal largo do form de produto — dados à esquerda, variantes à direita */
+.modal-card--wide {
+  max-width: 920px;
+}
+
+.product-form-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(400px, 1.6fr);
+  gap: 32px;
+}
+
+.column-subtitle {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+
+.variants-column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.variants-column-header .column-subtitle {
+  margin-bottom: 0;
 }
 
 .modal-header {
@@ -286,12 +319,16 @@ body {
 }
 
 .form-actions-footer {
+  /* fixo no rodapé do card — Cancelar/Salvar ficam visíveis enquanto a lista rola */
+  position: sticky;
+  bottom: -36px; /* compensa o padding do card */
+  background: white;
   display: flex;
   justify-content: flex-end;
   gap: 14px;
-  margin-top: 28px;
+  margin-top: 24px;
   border-top: 1px solid var(--border);
-  padding-top: 24px;
+  padding-top: 16px;
 }
 
 /* ==========================================================================
@@ -388,25 +425,6 @@ body {
   font-size: 0.9rem;
 }
 
-.variants-management-section {
-  margin-top: 24px;
-  padding-top: 18px;
-  border-top: 2px dashed var(--border);
-}
-
-.section-sub-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.section-sub-header h3 {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--primary);
-}
-
 .btn-text-action {
   background: transparent;
   border: none;
@@ -424,13 +442,13 @@ body {
   color: var(--primary-dark);
 }
 
-/* Cabeçalho do Grid de Variantes */
+/* Cabeçalho do Grid de Variantes — MESMO grid da linha pra alinhar rótulo/input */
 .variants-table-header {
   display: grid;
-  grid-template-columns: 100px 1fr 100px 50px;
-  gap: 12px;
-  padding: 0 10px 8px;
-  font-size: 0.78rem;
+  grid-template-columns: 72px minmax(0, 1fr) 80px 76px 36px;
+  gap: 10px;
+  padding: 0 8px 8px;
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--muted);
   text-transform: uppercase;
@@ -441,16 +459,16 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-height: 200px;
+  max-height: 340px;
   overflow-y: auto;
   padding-right: 4px;
 }
 
-/* Linha de Inputs de Variantes */
+/* Linha de Inputs de Variantes — 5 colunas fixas (Tamanho/Cor/Qtd/Imagem/Ação) */
 .variant-form-row {
   display: grid;
-  grid-template-columns: 100px 1fr 100px 50px;
-  gap: 12px;
+  grid-template-columns: 72px minmax(0, 1fr) 80px 76px 36px;
+  gap: 10px;
   align-items: center;
   background: #fffbfa;
   padding: 8px;
@@ -460,6 +478,8 @@ body {
 
 .variant-form-row select,
 .variant-form-row input {
+  min-width: 0;
+  width: 100%;
   padding: 10px 12px !important;
   font-size: 0.9rem !important;
   border-radius: 8px !important;
@@ -504,6 +524,17 @@ body {
 }
 
 /* RESPONSIVIDADE COMPLETA */
+@media (max-width: 900px) {
+  .modal-card--wide {
+    max-width: 600px;
+  }
+
+  .product-form-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
 @media (max-width: 768px) {
   .admin-header-actions {
     flex-direction: column;
@@ -561,4 +592,8 @@ body {
 
 .btn-upload-img:hover {
   background: #e0e0e0;
+}
+
+#form-descricao {
+  resize: none;
 }

@@ -42,7 +42,7 @@ describe("páginas renderizadas", () => {
         expect(res.text).toContain('data-name="vestidos"');
     });
 
-    it.each(["/about", "/contact", "/login", "/signup", "/produtos", "/catalogo", "/cart"])(
+    it.each(["/about", "/contact", "/login", "/signup", "/produtos", "/cart"])(
         "GET %s responde 200",
         async (rota) => {
             const res = await request(app).get(rota);
@@ -50,7 +50,7 @@ describe("páginas renderizadas", () => {
         }
     );
 
-    it.each(["/profile", "/historico", "/dados", "/vendas", "/contact_adm"])(
+    it.each(["/profile", "/historico", "/dados", "/vendas", "/contact_adm", "/catalogo"])(
         "GET %s redireciona para /login sem sessão",
         async (rota) => {
             const res = await request(app).get(rota);
@@ -90,7 +90,7 @@ describe("rotas protegidas (com sessão)", () => {
         }
     );
 
-    it.each(["/vendas", "/contact_adm"])(
+    it.each(["/vendas", "/contact_adm", "/catalogo"])(
         "cliente logado é barrado de %s (requireAdmin) → 302 /",
         async (rota) => {
             const cliente = await agenteLogado("ana.paula@email.com", "123456");
@@ -101,7 +101,7 @@ describe("rotas protegidas (com sessão)", () => {
         }
     );
 
-    it.each(["/vendas", "/contact_adm", "/profile", "/historico", "/dados"])(
+    it.each(["/vendas", "/contact_adm", "/catalogo", "/profile", "/historico", "/dados"])(
         "admin logado acessa tudo %s",
         async (rota) => {
             const admin = await agenteLogado("fabricio@email.com", "123456");
@@ -126,6 +126,20 @@ describe("rotas protegidas (com sessão)", () => {
         expect((res.text.match(/Marcar como Respondida/g) || []).length).toBe(5);
         // badge com classe e label formatados pelo controller (ex.: "Parceria")
         expect(res.text).toContain("subject-parceria");
+    });
+
+    it("catalogo renderiza a tabela de produtos no servidor (admin)", async () => {
+        const admin = await agenteLogado("fabricio@email.com", "123456");
+
+        const res = await admin.get("/catalogo");
+
+        expect(res.status).toBe(200);
+        expect(res.text).toContain("Controle de Catálogo");
+        // 20 linhas do seed renderizadas pelo {{#each}} do Handlebars
+        expect((res.text.match(/class="btn-action-edit"/g) || []).length).toBe(20);
+        expect(res.text).toContain("Vestido Floral Midi");
+        // select de categorias server-rendered (5 opções numéricas)
+        expect((res.text.match(/<option value="\d+">/g) || []).length).toBe(5);
     });
 
     it("profile renderiza os dados do usuário logado no servidor", async () => {
