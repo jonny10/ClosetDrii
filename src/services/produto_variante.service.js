@@ -1,7 +1,14 @@
-const { ProdutoVariante } = require("../models");
+const { Op } = require("sequelize");
+const { ProdutoVariante, ProdutoVenda } = require("../models");
 
 // Campos aceitos em criar/atualizar — whitelist evita mass-assignment
 const CAMPOS = ["produto_id", "cor", "tamanho", "imagem_url", "estoque"];
+
+function criarErro(mensagem, status) {
+    const erro = new Error(mensagem);
+    erro.status = status;
+    return erro;
+}
 
 // Monta o objeto só com os campos permitidos que vieram definidos (serve p/ create e update parcial)
 function montarDados(dados = {}) {
@@ -38,25 +45,48 @@ async function buscarVariante(id) {
     return variante ? formatarVariante(variante) : null;
 }
 
-// POST /api/variantes
+// POST /api/admin/produtos/:id/variantes — 409 se cor+tamanho já existirem no produto
 async function criarVariante(dados) {
+    const existente = await ProdutoVariante.findOne({
+        where: { produto_id: dados.produto_id, cor: dados.cor, tamanho: dados.tamanho },
+    });
+    if (existente) throw criarErro("Variante já existe para este produto", 409);
+
     const variante = await ProdutoVariante.create(montarDados(dados));
     return formatarVariante(variante);
 }
 
-// PUT/PATCH /api/variantes/:id — null se não existir
+// PATCH /api/admin/variantes/:id — null se não existir; 409 se cor/tamanho
+// colidirem com outra variante do mesmo produto
 async function atualizarVariante(id, dados) {
     const variante = await ProdutoVariante.findByPk(id);
     if (!variante) return null;
 
-    await variante.update(montarDados(dados));
+    const patch = montarDados(dados);
+
+    if (patch.cor !== undefined || patch.tamanho !== undefined) {
+        const conflito = await ProdutoVariante.findOne({
+            where: {
+                produto_id: variante.produto_id,
+                cor: patch.cor !== undefined ? patch.cor : variante.cor,
+                tamanho: patch.tamanho !== undefined ? patch.tamanho : variante.tamanho,
+                id: { [Op.ne]: id },
+            },
+        });
+        if (conflito) throw criarErro("Variante já existe para este produto", 409);
+    }
+
+    await variante.update(patch);
     return formatarVariante(variante);
 }
 
-// DELETE /api/variantes/:id — false se não existir
+// DELETE /api/admin/variantes/:id — false se não existir; 409 com vendas vinculadas
 async function removerVariante(id) {
     const variante = await ProdutoVariante.findByPk(id);
     if (!variante) return false;
+
+    const vendas = await ProdutoVenda.count({ where: { produto_variante_id: id } });
+    if (vendas > 0) throw criarErro("Variante possui vendas vinculadas", 409);
 
     await variante.destroy();
     return true;

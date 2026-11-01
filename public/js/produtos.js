@@ -1,72 +1,196 @@
+import { openProductModal } from "/js/global/product-modal.js";
 import { showSnackbar } from "/js/global/snackbar.js";
 
-// Catálogo (produtos) — motor de filtros/ordenação no cliente.
-//
-// Os dados (produtos e categorias) agora vêm do back-end (Node/Express + Sequelize).
-// TODO (nova stack): carregar `produtos` e as categorias do servidor
-//   (renderizados via Handlebars OU por uma API: GET /produtos, GET /categorias).
-// A renderização dos cards também deve ser server-side ({{#each}}) ou por um
-// renderizador de front dedicado — ver `renderizarComponenteCards` abaixo.
+// Catálogo (produtos) — os cards e os checkboxes de categoria são renderizados
+// no SERVIDOR (Handlebars). Aqui fica o motor de filtros/ordenação: mostra/esconde
+// e reordena os cards já no DOM (sem <template>) e sincroniza a query string
+// (?busca=&categoria=&orderBy=&dir=&tamanho=). O modal de detalhe faz fetch
+// on-click com cache — mesmo padrão da home.
 
-// Estados globais em memória para filtragem dinâmica
-let produtos = [];
 let buscaDebounceTimer;
+const cacheProduto = new Map();
 
-document.addEventListener("DOMContentLoaded", async () => {
-  // TODO (nova stack): popular `produtos` e `listaCategorias` a partir do back-end.
-  const listaCategorias = [];
-  produtos = [];
-
-  renderizarCheckboxesCategorias(listaCategorias);
+document.addEventListener("DOMContentLoaded", () => {
+  configurarCliquesNosCards();
   inicializarOuvintesFiltros();
-  checarFiltrosIniciaisURL();
+  aplicarFiltrosIniciaisDaURL();
   aplicarFiltrosEOrdenacao();
 });
 
-// Placeholder de renderização (antes vinha do util com Firebase).
-// TODO (nova stack): renderizar os cards no servidor (Handlebars {{#each}})
-// ou implementar aqui um renderizador de front puro.
-function renderizarComponenteCards(lista, containerId) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  console.log(`Renderizar ${lista.length} produto(s) em #${containerId} (pendente).`);
-}
-
-// Injeta os inputs de categoria
-function renderizarCheckboxesCategorias(lista) {
-  const container = document.getElementById("categories-filter-list");
-  if (!container) return;
-
-  lista.forEach((categoria) => {
-    const li = document.createElement("li");
-    li.innerHTML = `
-      <label>
-        <input type="checkbox" class="category-checkbox" data-name="${categoria.toLowerCase()}" />
-        ${categoria}
-      </label>
-    `;
-    container.appendChild(li);
+// Abre o modal de detalhe ao clicar no card (fetch + cache, padrão da home)
+function configurarCliquesNosCards() {
+  document.querySelectorAll(".product-card-component").forEach((card) => {
+    const id = Number(card.dataset.id);
+    if (!id) return;
+    card.addEventListener("click", () => abrirProduto(id));
   });
 }
 
-// Intercepta parâmetros vindos de redirecionamentos (ex.: chips de categoria da Home)
-function checarFiltrosIniciaisURL() {
-  const params = new URLSearchParams(window.location.search);
-  const catParam = params.get("categoria");
+async function abrirProduto(id) {
+  if (cacheProduto.has(id)) {
+    openProductModal(cacheProduto.get(id));
+    return;
+  }
 
+  try {
+    const resp = await fetch(`/api/produtos/${id}`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+    const data = await resp.json();
+    const produto = {
+      ...data,
+      categoria: data.categoria ? data.categoria.nome : null,
+    };
+
+    cacheProduto.set(id, produto);
+    openProductModal(produto);
+  } catch (err) {
+    console.error("Erro ao abrir produto:", err);
+    showSnackbar("Erro ao carregar o produto.", "error");
+  }
+}
+
+function obterCards() {
+  return [...document.querySelectorAll("#product-catalog-grid .product-card-component")];
+}
+
+// MOTOR DE FILTRAGEM E ORDENAÇÃO (sobre os cards server-rendered)
+function aplicarFiltrosEOrdenacao() {
+  const cards = obterCards();
+  const activeFilters = [];
+
+  // 1. Busca por texto (nome + descricao, via data-busca)
+  const termoBusca = document.getElementById("search-input")?.value.trim().toLowerCase() || "";
+
+  // 2. Categorias selecionadas (multi-seleção; "Todos" desmarca as demais)
+  const checkTodos = document.getElementById("check-todos-categorias");
+  const categoriasSelecionadas = checkTodos?.checked
+    ? []
+    : [...document.querySelectorAll(".category-checkbox:checked")].map((cb) => cb.dataset.name);
+
+  // 3. Preço máximo (slider)
+  const sliderPreco = document.getElementById("price-slider");
+  const precoMaximo = sliderPreco ? Number(sliderPreco.value) : 500;
+  if (sliderPreco) {
+    const txtPreco = document.getElementById("price-value");
+    if (txtPreco) txtPreco.textContent = `Até R$ ${precoMaximo.toFixed(2).replace(".", ",")}`;
+  }
+
+  // 4. Tamanhos ativos nos chips
+  const tamanhosAtivos = [...document.querySelectorAll(".size-chip.active")].map((chip) =>
+    chip.textContent.trim(),
+  );
+
+  cards.forEach((card) => {
+    let visivel = true;
+
+    if (visivel && termoBusca && !card.dataset.busca.includes(termoBusca)) visivel = false;
+
+    if (visivel && categoriasSelecionadas.length > 0) {
+      const categoriaCard = (card.dataset.categoria || "").toLowerCase();
+      if (!categoriasSelecionadas.includes(categoriaCard)) visivel = false;
+    }
+
+    if (visivel && precoMaximo < 500 && Number(card.dataset.preco) > precoMaximo) {
+      visivel = false;
+    }
+
+    if (visivel && tamanhosAtivos.length > 0) {
+      const tamanhosCard = (card.dataset.tamanhos || "").split(",");
+      if (!tamanhosAtivos.some((t) => tamanhosCard.includes(t))) visivel = false;
+    }
+
+    card.style.display = visivel ? "" : "none";
+  });
+
+  // 5. Ordenação (preço); novidades/mais vendidos mantêm a ordem do servidor
+  const ordenacao = document.getElementById("sort-select")?.value;
+  const grid = document.getElementById("product-catalog-grid");
+  if ((ordenacao === "price-asc" || ordenacao === "price-desc") && grid) {
+    const fator = ordenacao === "price-asc" ? 1 : -1;
+    [...cards]
+      .sort((a, b) => fator * (Number(a.dataset.preco) - Number(b.dataset.preco)))
+      .forEach((card) => grid.appendChild(card));
+  }
+
+  // 6. Contador + badges + estado vazio + query string
+  const visiveis = cards.filter((card) => card.style.display !== "none");
+
+  const contador = document.getElementById("products-count-txt");
+  if (contador) contador.textContent = String(visiveis.length);
+
+  if (termoBusca) activeFilters.push({ type: "text", label: `Busca: "${termoBusca}"` });
+  categoriasSelecionadas.forEach((cat) => activeFilters.push({ type: "category", label: cat }));
+  if (precoMaximo < 500) activeFilters.push({ type: "price", label: `Até R$ ${precoMaximo}` });
+  tamanhosAtivos.forEach((tam) => activeFilters.push({ type: "size", label: `Tam: ${tam}`, rawValue: tam }));
+
+  atualizarAreaBadgesFiltros(activeFilters);
+  atualizarEstadoVazio(visiveis.length);
+  sincronizarURL({ termoBusca, categoriasSelecionadas, ordenacao, tamanhosAtivos });
+}
+
+// Estado vazio: injeta/remove a mensagem dentro do grid (classe estilizada no produtos.css)
+function atualizarEstadoVazio(total) {
+  const grid = document.getElementById("product-catalog-grid");
+  if (!grid) return;
+
+  let mensagem = grid.querySelector(".no-products");
+  if (total === 0) {
+    if (!mensagem) {
+      mensagem = document.createElement("p");
+      mensagem.className = "no-products";
+      mensagem.textContent = "Nenhum look encontrado para os filtros selecionados.";
+      grid.appendChild(mensagem);
+    }
+  } else if (mensagem) {
+    mensagem.remove();
+  }
+}
+
+// Mantém a query string refletindo os filtros ativos (voltar/avançar preserva o estado)
+function sincronizarURL({ termoBusca, categoriasSelecionadas, ordenacao, tamanhosAtivos }) {
+  const params = new URLSearchParams();
+
+  if (termoBusca) params.set("busca", termoBusca);
+  if (categoriasSelecionadas.length === 1) params.set("categoria", categoriasSelecionadas[0]);
+  if (ordenacao === "price-asc") {
+    params.set("orderBy", "preco");
+    params.set("dir", "asc");
+  } else if (ordenacao === "price-desc") {
+    params.set("orderBy", "preco");
+    params.set("dir", "desc");
+  }
+  if (tamanhosAtivos.length > 0) params.set("tamanho", tamanhosAtivos.join(","));
+
+  const query = params.toString();
+  const novaURL = `${window.location.pathname}${query ? `?${query}` : ""}`;
+  window.history.replaceState(null, "", novaURL);
+}
+
+// Lê filtros vindos de links (ex.: chips de categoria da home → /produtos?categoria=vestidos)
+function aplicarFiltrosIniciaisDaURL() {
+  const params = new URLSearchParams(window.location.search);
+
+  const catParam = params.get("categoria")?.toLowerCase();
   if (catParam) {
     const checkTodos = document.getElementById("check-todos-categorias");
     if (checkTodos) checkTodos.checked = false;
 
-    setTimeout(() => {
-      const targetCheckbox = document.querySelector(
-        `.category-checkbox[data-name="${catParam.toLowerCase()}"]`,
-      );
-      if (targetCheckbox) {
-        targetCheckbox.checked = true;
-        aplicarFiltrosEOrdenacao();
-      }
-    }, 50);
+    const alvo = document.querySelector(`.category-checkbox[data-name="${catParam}"]`);
+    if (alvo) alvo.checked = true;
+  }
+
+  const buscaParam = params.get("busca");
+  if (buscaParam) {
+    const input = document.getElementById("search-input");
+    if (input) input.value = buscaParam;
+  }
+
+  const orderBy = params.get("orderBy");
+  const dir = params.get("dir");
+  const select = document.getElementById("sort-select");
+  if (select && orderBy === "preco") {
+    select.value = dir === "asc" ? "price-asc" : "price-desc";
   }
 }
 
@@ -80,34 +204,28 @@ function inicializarOuvintesFiltros() {
   }
 
   const sliderPreco = document.getElementById("price-slider");
-  if (sliderPreco) {
-    sliderPreco.addEventListener("input", () => aplicarFiltrosEOrdenacao());
-  }
+  if (sliderPreco) sliderPreco.addEventListener("input", () => aplicarFiltrosEOrdenacao());
 
   const checkTodos = document.getElementById("check-todos-categorias");
   if (checkTodos) {
     checkTodos.addEventListener("change", () => {
       if (checkTodos.checked) {
-        document
-          .querySelectorAll(".category-checkbox")
-          .forEach((cb) => (cb.checked = false));
+        document.querySelectorAll(".category-checkbox").forEach((cb) => (cb.checked = false));
       }
       aplicarFiltrosEOrdenacao();
     });
   }
 
-  const catListContainer = document.getElementById("categories-filter-list");
-  if (catListContainer) {
-    catListContainer.addEventListener("change", (e) => {
-      if (e.target.classList.contains("category-checkbox")) {
-        if (e.target.checked && checkTodos) checkTodos.checked = false;
-        aplicarFiltrosEOrdenacao();
-      }
+  const listaCategorias = document.getElementById("categories-filter-list");
+  if (listaCategorias) {
+    listaCategorias.addEventListener("change", (e) => {
+      if (!e.target.classList.contains("category-checkbox")) return;
+      if (e.target.checked && checkTodos) checkTodos.checked = false;
+      aplicarFiltrosEOrdenacao();
     });
   }
 
-  const chipsTamanho = document.querySelectorAll(".size-chip");
-  chipsTamanho.forEach((chip) => {
+  document.querySelectorAll(".size-chip").forEach((chip) => {
     chip.addEventListener("click", () => {
       chip.classList.toggle("active");
       aplicarFiltrosEOrdenacao();
@@ -115,117 +233,10 @@ function inicializarOuvintesFiltros() {
   });
 
   const selectOrdenacao = document.getElementById("sort-select");
-  if (selectOrdenacao) {
-    selectOrdenacao.addEventListener("change", () => aplicarFiltrosEOrdenacao());
-  }
+  if (selectOrdenacao) selectOrdenacao.addEventListener("change", () => aplicarFiltrosEOrdenacao());
 
   const btnClearAll = document.getElementById("btn-clear-all-filters");
-  if (btnClearAll) {
-    btnClearAll.addEventListener("click", resetarTodosOsFiltros);
-  }
-}
-
-// MOTOR DE FILTRAGEM E ORDENAÇÃO EM MEMÓRIA
-function aplicarFiltrosEOrdenacao() {
-  let resultado = [...produtos];
-  const activeFilters = [];
-
-  // 1. Filtro por texto
-  const searchInput = document.getElementById("search-input");
-  const termoBusca = searchInput?.value.trim().toLowerCase();
-  if (termoBusca) {
-    resultado = resultado.filter(
-      (p) =>
-        p.nome.toLowerCase().includes(termoBusca) ||
-        p.descricao.toLowerCase().includes(termoBusca),
-    );
-    activeFilters.push({ type: "text", label: `Busca: "${termoBusca}"` });
-  }
-
-  // 2. Filtro por categorias (multi-seleção)
-  const checkTodos = document.getElementById("check-todos-categorias");
-  const catCheckboxes = document.querySelectorAll(".category-checkbox");
-
-  if (checkTodos && !checkTodos.checked) {
-    const selecionadas = Array.from(catCheckboxes)
-      .filter((cb) => cb.checked)
-      .map((cb) => cb.parentElement.textContent.trim());
-
-    if (selecionadas.length > 0) {
-      resultado = resultado.filter((p) =>
-        selecionadas
-          .map((s) => s.toLowerCase())
-          .includes(p.categoria.toLowerCase()),
-      );
-      selecionadas.forEach((cat) =>
-        activeFilters.push({ type: "category", label: cat }),
-      );
-    } else if (!termoBusca) {
-      resultado = [];
-    }
-  }
-
-  // 3. Filtro por preço
-  const sliderPreco = document.getElementById("price-slider");
-  const txtPrecoValue = document.getElementById("price-value");
-  if (sliderPreco) {
-    const precoMaximo = Number(sliderPreco.value);
-    if (txtPrecoValue)
-      txtPrecoValue.textContent = `Até R$ ${precoMaximo.toFixed(2).replace(".", ",")}`;
-
-    if (precoMaximo < 500) {
-      resultado = resultado.filter((p) => p.preco <= precoMaximo);
-      activeFilters.push({ type: "price", label: `Até R$ ${precoMaximo}` });
-    }
-  }
-
-  // 4. Filtro por tamanhos (multi-seleção; nenhum = todos valem)
-  const chipsAtivos = document.querySelectorAll(".size-chip.active");
-  if (chipsAtivos.length > 0) {
-    const tamanhosSelecionados = Array.from(chipsAtivos).map((chip) =>
-      chip.textContent.trim(),
-    );
-
-    resultado = resultado.filter((produto) =>
-      produto.variantes.some((variante) =>
-        tamanhosSelecionados.includes(variante.tamanho),
-      ),
-    );
-
-    tamanhosSelecionados.forEach((tam) => {
-      activeFilters.push({ type: "size", label: `Tam: ${tam}`, rawValue: tam });
-    });
-  }
-
-  // 5. Ordenação por preço
-  const selectOrdenacao = document.getElementById("sort-select");
-  if (selectOrdenacao) {
-    switch (selectOrdenacao.value) {
-      case "price-asc":
-        resultado.sort((a, b) => a.preco - b.preco);
-        break;
-      case "price-desc":
-        resultado.sort((a, b) => b.preco - a.preco);
-        break;
-    }
-  }
-
-  // 6. Contador + badges
-  const txtContador = document.getElementById("products-count-txt");
-  if (txtContador) txtContador.textContent = resultado.length;
-
-  atualizarAreaBadgesFiltros(activeFilters);
-
-  // 7. Renderização final
-  const container = document.getElementById("product-catalog-grid");
-  if (resultado.length === 0) {
-    if (container) {
-      container.innerHTML = `<p class="no-products">Nenhum look encontrado para os filtros selecionados.</p>`;
-    }
-    return;
-  }
-
-  renderizarComponenteCards(resultado, "product-catalog-grid");
+  if (btnClearAll) btnClearAll.addEventListener("click", resetarTodosOsFiltros);
 }
 
 function atualizarAreaBadgesFiltros(filtros) {
@@ -260,15 +271,12 @@ function removerFiltroIndividual(filtro) {
     const input = document.getElementById("search-input");
     if (input) input.value = "";
   } else if (filtro.type === "category") {
-    const labelLower = filtro.label.toLowerCase();
-    const target = document.querySelector(
-      `.category-checkbox[data-name="${labelLower}"]`,
-    );
-    if (target) target.checked = false;
+    const alvo = document.querySelector(`.category-checkbox[data-name="${filtro.label.toLowerCase()}"]`);
+    if (alvo) alvo.checked = false;
 
-    const aindaTemSelecionado = Array.from(
-      document.querySelectorAll(".category-checkbox"),
-    ).some((cb) => cb.checked);
+    const aindaTemSelecionado = [...document.querySelectorAll(".category-checkbox")].some(
+      (cb) => cb.checked,
+    );
     if (!aindaTemSelecionado) {
       const checkTodos = document.getElementById("check-todos-categorias");
       if (checkTodos) checkTodos.checked = true;
@@ -277,10 +285,10 @@ function removerFiltroIndividual(filtro) {
     const slider = document.getElementById("price-slider");
     if (slider) slider.value = 500;
   } else if (filtro.type === "size") {
-    const targetChip = Array.from(document.querySelectorAll(".size-chip")).find(
+    const chip = [...document.querySelectorAll(".size-chip")].find(
       (c) => c.textContent.trim() === filtro.rawValue,
     );
-    if (targetChip) targetChip.classList.remove("active");
+    if (chip) chip.classList.remove("active");
   }
 
   aplicarFiltrosEOrdenacao();
@@ -296,12 +304,11 @@ function resetarTodosOsFiltros() {
   const checkTodos = document.getElementById("check-todos-categorias");
   if (checkTodos) checkTodos.checked = true;
 
-  document
-    .querySelectorAll(".category-checkbox")
-    .forEach((cb) => (cb.checked = false));
-  document
-    .querySelectorAll(".size-chip")
-    .forEach((c) => c.classList.remove("active"));
+  document.querySelectorAll(".category-checkbox").forEach((cb) => (cb.checked = false));
+  document.querySelectorAll(".size-chip").forEach((c) => c.classList.remove("active"));
+
+  const select = document.getElementById("sort-select");
+  if (select) select.value = "news";
 
   aplicarFiltrosEOrdenacao();
 }

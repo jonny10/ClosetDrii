@@ -20,6 +20,18 @@
                 Todos</label
             >
             </li>
+            {{#each categorias}}
+            <li>
+            <label
+                ><input
+                type="checkbox"
+                class="category-checkbox"
+                data-name="{{nome_lower}}"
+                />
+                {{nome}}</label
+            >
+            </li>
+            {{/each}}
         </ul>
         </div>
 
@@ -86,34 +98,40 @@
         <div class="sort-wrapper">
             <label for="sort-select">Ordenar por:</label>
             <select id="sort-select">
-            <option value="news">Novidades</option>
+            <option value="default">Padrão</option>
             <option value="price-asc">Menor Preço</option>
             <option value="price-desc">Maior Preço</option>
-            <option value="best-sellers">Mais Vendidos</option>
             </select>
         </div>
         </div>
 
-        <div id="product-catalog-grid" class="product-grid"></div>
-
-        <template id="template-card">
-        <div class="product-card-component">
+        <div id="product-catalog-grid" class="product-grid">
+        {{#each produtos}}
+        <div
+            class="product-card-component"
+            data-id="{{id}}"
+            data-preco="{{preco}}"
+            data-categoria="{{categoria}}"
+            data-tamanhos="{{tamanhos}}"
+            data-busca="{{busca}}"
+        >
             <div
             class="card-clickable-area open-modal-trigger"
             style="cursor: pointer"
             >
             <div class="image-wrapper">
-                <img class="produto-img" src="" alt="" />
+                <img class="produto-img" src="{{imagem}}" alt="{{nome}}" />
                 <span class="product-badge">Novo</span>
             </div>
             <div class="card-info">
-                <h3 class="produto-nome"></h3>
-                <p class="produto-preco"></p>
+                <h3 class="produto-nome">{{nome}}</h3>
+                <p class="produto-preco">R$ {{preco_formatado}}</p>
             </div>
             </div>
             <button class="add-btn">Detalhes do produto</button>
         </div>
-        </template>
+        {{/each}}
+        </div>
     </section>
     </div>
 </main>
