@@ -2,9 +2,9 @@
  * Header — interatividade de front-end.
  *
  * Autenticação/RBAC: a decisão de quais itens do menu exibir
- * (visitante x cliente x admin) agora é feita no SERVIDOR, na view (Handlebars),
- * via `{{#if user}}` / `{{#if user.isAdmin}}`. Este arquivo cuida apenas do
- * comportamento visual: link ativo e menu mobile (hambúrguer).
+ * (visitante x cliente x admin) é feita no SERVIDOR, na view (Handlebars),
+ * via {{#unless user}} / {{#if user}} / {{#if isAdmin}}. Este arquivo cuida do
+ * comportamento visual (link ativo, menu mobile) e do botão Sair (logout).
  */
 export function inicializarHeader() {
   const container = document.querySelector(".nav-container");
@@ -27,7 +27,20 @@ export function inicializarHeader() {
     if (homeLink) homeLink.classList.add("active");
   }
 
-  // 2. Controle do Menu Mobile e Interceptação de Cliques Externos
+  // 2. Logout: destrói a sessão no servidor e volta pra home
+  const btnLogout = document.getElementById("btn-logout");
+  if (btnLogout) {
+    btnLogout.addEventListener("click", async () => {
+      try {
+        await fetch("/api/auth/logout", { method: "POST" });
+      } catch (err) {
+        console.error("Erro ao sair:", err);
+      }
+      window.location.href = "/";
+    });
+  }
+
+  // 3. Controle do Menu Mobile e Interceptação de Cliques Externos
   const menuToggle = document.getElementById("menuToggle");
   const navMenu = document.getElementById("navMenu");
 

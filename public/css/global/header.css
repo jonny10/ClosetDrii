@@ -164,6 +164,22 @@
     color: var(--primary);
 }
 
+/* BOTÃO SAIR (logout no header) */
+.nav-logout-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-logout-btn:hover {
+  background: rgba(191, 94, 129, 0.12);
+  color: var(--primary-dark);
+}
+
 /* BOTÃO HAMBURGUER (Oculto no Desktop) */
 .menu-toggle-btn {
     display: none;

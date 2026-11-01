@@ -27,9 +27,7 @@ body {
 
 /* LAYOUT CENTRAL DO DASHBOARD */
 .admin-crud-layout {
-  padding: 120px 32px 40px;
-  max-width: 1400px;
-  margin: 0 auto;
+  padding: 32px;
 }
 
 /* CABEÇALHO COM GLASSMORPHISM AVANÇADO */
