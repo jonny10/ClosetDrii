@@ -1,5 +1,6 @@
 const { Op } = require("sequelize");
-const { Produto, Categoria, ProdutoVariante } = require("../models");
+const sequelize = require("../config/database");
+const { Produto, Categoria, ProdutoVariante, ProdutoVenda, Avaliacao } = require("../models");
 
 const INCLUDE_CATEGORIA = {
     model: Categoria,
@@ -12,6 +13,12 @@ const INCLUDE_VARIANTES = {
     as: "variantes",
     attributes: ["id", "cor", "tamanho", "estoque", "imagem_url"],
 };
+
+function criarErro(mensagem, status) {
+    const erro = new Error(mensagem);
+    erro.status = status;
+    return erro;
+}
 
 // Converte a instância do Sequelize (com associações) no shape que a API devolve.
 // preco sai como Number — a formatação pt-BR é responsabilidade da camada de view.
@@ -81,9 +88,82 @@ async function listarVariantes(produtoId) {
     }));
 }
 
+// POST /api/admin/produtos — produto + variantes opcionais numa única transação.
+// 400 se a categoria não existir (a validação de campos fica no controller).
+async function criarProdutoComVariantes(dados, variantes = []) {
+    const categoria = await Categoria.findByPk(dados.categoria_id);
+    if (!categoria) throw criarErro("Categoria não encontrada", 400);
+
+    const produto = await sequelize.transaction(async (t) => {
+        const novo = await Produto.create(dados, { transaction: t });
+
+        if (variantes.length > 0) {
+            await ProdutoVariante.bulkCreate(
+                variantes.map((v) => ({
+                    produto_id: novo.id,
+                    cor: v.cor,
+                    tamanho: v.tamanho,
+                    estoque: v.estoque,
+                    imagem_url: v.imagem_url,
+                })),
+                { transaction: t }
+            );
+        }
+
+        return novo;
+    });
+
+    return formatarProduto(await buscarProduto(produto.id));
+}
+
+// PATCH /api/admin/produtos/:id — update parcial; null se não existir
+async function atualizarProduto(id, dados) {
+    const produto = await Produto.findByPk(id);
+    if (!produto) return null;
+
+    if (dados.categoria_id !== undefined) {
+        const categoria = await Categoria.findByPk(dados.categoria_id);
+        if (!categoria) throw criarErro("Categoria não encontrada", 400);
+    }
+
+    await produto.update(dados);
+    return formatarProduto(await buscarProduto(id));
+}
+
+// DELETE /api/admin/produtos/:id — null se não existir; 409 se houver avaliações
+// ou vendas vinculadas; remove produto + variantes em transação
+async function removerProduto(id) {
+    const produto = await Produto.findByPk(id);
+    if (!produto) return null;
+
+    const avaliacoes = await Avaliacao.count({ where: { produto_id: id } });
+    if (avaliacoes > 0) throw criarErro("Produto possui avaliações vinculadas", 409);
+
+    const variantes = await ProdutoVariante.findAll({
+        where: { produto_id: id },
+        attributes: ["id"],
+    });
+    if (variantes.length > 0) {
+        const vendas = await ProdutoVenda.count({
+            where: { produto_variante_id: variantes.map((v) => v.id) },
+        });
+        if (vendas > 0) throw criarErro("Produto possui vendas vinculadas", 409);
+    }
+
+    await sequelize.transaction(async (t) => {
+        await ProdutoVariante.destroy({ where: { produto_id: id }, transaction: t });
+        await produto.destroy({ transaction: t });
+    });
+
+    return { id };
+}
+
 module.exports = {
     listarProdutos,
     buscarProduto,
     listarVariantes,
+    criarProdutoComVariantes,
+    atualizarProduto,
+    removerProduto,
     formatarProduto,
 };

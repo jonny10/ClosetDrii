@@ -28,6 +28,20 @@ describe("páginas renderizadas", () => {
         expect((res.text.match(/R\$ \d+,\d{2}/g) || []).length).toBeGreaterThanOrEqual(8);
     });
 
+    it("produtos renderiza os cards e checkboxes de categoria no servidor (sem template)", async () => {
+        const res = await request(app).get("/produtos");
+
+        expect(res.status).toBe(200);
+        expect(res.text).toContain("Nossa Coleção");
+        // 20 produtos do seed renderizados pelo {{#each}} — sem <template> de clonagem
+        expect((res.text.match(/class="product-card-component"/g) || []).length).toBe(20);
+        expect(res.text).not.toContain("template-card");
+        expect(res.text).toContain("Vestido Floral Midi");
+        // 5 checkboxes de categoria server-rendered (além do "Todos" estático)
+        expect((res.text.match(/class="category-checkbox"/g) || []).length).toBe(5);
+        expect(res.text).toContain('data-name="vestidos"');
+    });
+
     it.each(["/about", "/contact", "/login", "/signup", "/produtos", "/catalogo", "/cart"])(
         "GET %s responde 200",
         async (rota) => {

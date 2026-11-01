@@ -80,7 +80,6 @@ body {
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   position: sticky;
-  top: 130px; /* Previne que suma sob o header fixo ao rolar */
 }
 
 .filter-box {
@@ -268,7 +267,15 @@ body {
 .product-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 24px;
+  gap: 30px;
+}
+
+.no-products {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: #7a7a7a;
+  font-size: 1.1rem;
+  padding: 40px 0;
 }
 
 /* REAPROVEITAMENTO DOS CARDS DA HOME */
