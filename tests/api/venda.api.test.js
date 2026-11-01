@@ -205,6 +205,27 @@ describe("POST /api/vendas", () => {
         expect(res.status).toBe(201);
         expect(res.body.endereco_entrega_id).toBe(4);
     });
+
+    it("permite comprar o estoque inteiro e bloqueia a próxima unidade", async () => {
+        const agente = await loginCliente();
+        const variante2 = await ProdutoVariante.findByPk(2); // estoque 7 no seed, sem uso em outros testes
+
+        const res = await agente.post("/api/vendas").send({
+            itens: [{ id_variante: 2, quantidade: variante2.estoque }],
+        });
+
+        expect(res.status).toBe(201);
+        expect(res.body.valor_total).toBeCloseTo(189.9 * variante2.estoque, 4);
+        expect((await ProdutoVariante.findByPk(2)).estoque).toBe(0);
+
+        const resSegunda = await agente.post("/api/vendas").send({
+            itens: [{ id_variante: 2, quantidade: 1 }],
+        });
+        expect(resSegunda.status).toBe(409);
+        expect(resSegunda.body).toEqual({
+            error: 'Estoque insuficiente para "Vestido Floral Midi"',
+        });
+    });
 });
 
 describe("GET /api/vendas/minhas", () => {
@@ -307,6 +328,20 @@ describe("POST /api/vendas/:id/comprovante", () => {
         expect(res.body).toEqual({ error: "Venda não encontrada" });
     });
 
+    it("404 para id inválido na URL", async () => {
+        const agente = await loginCliente();
+
+        const res = await agente
+            .post("/api/vendas/abc/comprovante")
+            .attach("comprovante", PNG_1PX, {
+                filename: "comprovante.png",
+                contentType: "image/png",
+            });
+
+        expect(res.status).toBe(404);
+        expect(res.body).toEqual({ error: "Venda não encontrada" });
+    });
+
     it("404 para venda de outro usuário", async () => {
         const agente = await loginAdmin(); // venda 1 é da Ana Paula
 
@@ -333,6 +368,41 @@ describe("POST /api/vendas/:id/comprovante", () => {
 
         expect(res.status).toBe(400);
         expect(res.body).toEqual({ error: "Apenas imagens JPG, PNG ou WebP são aceitas" });
+    });
+
+    it("400 para arquivo acima de 5MB", async () => {
+        const agente = await loginCliente();
+        const arquivoGrande = Buffer.alloc(5 * 1024 * 1024 + 1, 1);
+
+        const res = await agente
+            .post("/api/vendas/1/comprovante")
+            .attach("comprovante", arquivoGrande, {
+                filename: "grande.png",
+                contentType: "image/png",
+            });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toEqual({ error: "Comprovante deve ter no máximo 5MB" });
+    });
+
+    it("serve o comprovante enviado via GET /uploads", async () => {
+        const agente = await loginCliente();
+
+        const upload = await agente
+            .post("/api/vendas/1/comprovante")
+            .attach("comprovante", PNG_1PX, {
+                filename: "comprovante.png",
+                contentType: "image/png",
+            });
+
+        expect(upload.status).toBe(200);
+        arquivosCriados.push(path.join(REPO_ROOT, upload.body.comprovante_url));
+
+        // rota estática do app.js — sem autenticação, pra o admin abrir a imagem direto
+        const res = await request(app).get(upload.body.comprovante_url);
+
+        expect(res.status).toBe(200);
+        expect(res.headers["content-type"]).toContain("image/png");
     });
 
     it("400 sem arquivo", async () => {
