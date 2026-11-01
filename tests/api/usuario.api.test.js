@@ -154,3 +154,146 @@ describe("POST /api/auth/logout", () => {
         expect(res.body).toEqual({ message: "Logout realizado" });
     });
 });
+
+describe("PATCH /api/usuarios/me", () => {
+    beforeAll(async () => {
+        await sequelize.sync({ force: true });
+        await seed();
+    });
+
+    async function agenteLogado(email, senha) {
+        const agente = request.agent(app);
+        const login = await agente.post("/api/auth/login").send({ email, senha });
+        expect(login.status).toBe(200);
+        return agente;
+    }
+
+    it("401 sem sessão", async () => {
+        const res = await request(app).patch("/api/usuarios/me").send({ nome: "X" });
+
+        expect(res.status).toBe(401);
+        expect(res.body).toEqual({ error: "Não autenticado" });
+    });
+
+    it("atualiza os dados do usuário logado e devolve o usuário formatado", async () => {
+        const cliente = await agenteLogado("ana.paula@email.com", "123456");
+
+        const res = await cliente.patch("/api/usuarios/me").send({
+            nome: "Ana Paula F. Silva",
+            telefone: "(11) 98765-4321",
+            cpf: "123.456.789-04",
+            dt_nascimento: "1998-01-20",
+            genero: "F",
+        });
+
+        expect(res.status).toBe(200);
+        expect(res.body).toMatchObject({
+            id: 4,
+            nome: "Ana Paula F. Silva",
+            email: "ana.paula@email.com",
+            telefone: "11987654321",
+            cpf: "12345678904",
+            dt_nascimento: "1998-01-20",
+            genero: "F",
+        });
+        expect(res.body).not.toHaveProperty("senha");
+
+        const noBanco = await Usuario.findByPk(4);
+        expect(noBanco.nome).toBe("Ana Paula F. Silva");
+        expect(noBanco.telefone).toBe("11987654321");
+        expect(noBanco.cpf).toBe("12345678904");
+    });
+
+    it("atualização parcial altera só os campos enviados", async () => {
+        const cliente = await agenteLogado("ana.paula@email.com", "123456");
+
+        const res = await cliente.patch("/api/usuarios/me").send({ nome: "Ana P." });
+
+        expect(res.status).toBe(200);
+        expect(res.body.nome).toBe("Ana P.");
+        expect(res.body.email).toBe("ana.paula@email.com");
+        // campos não enviados permanecem como estavam
+        expect(res.body.cpf).toBe("12345678904");
+        expect(res.body.genero).toBe("F");
+    });
+
+    it("limpa campo opcional quando enviado vazio", async () => {
+        const cliente = await agenteLogado("ana.paula@email.com", "123456");
+
+        const res = await cliente.patch("/api/usuarios/me").send({ cpf: "", dt_nascimento: "" });
+
+        expect(res.status).toBe(200);
+        expect(res.body.cpf).toBeNull();
+        expect(res.body.dt_nascimento).toBeNull();
+
+        const noBanco = await Usuario.findByPk(4);
+        expect(noBanco.cpf).toBeNull();
+        expect(noBanco.dt_nascimento).toBeNull();
+    });
+
+    it("400 para nome vazio", async () => {
+        const cliente = await agenteLogado("ana.paula@email.com", "123456");
+
+        const res = await cliente.patch("/api/usuarios/me").send({ nome: "   " });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toEqual({ error: "Nome é obrigatório" });
+    });
+
+    it("400 para cpf fora do padrão de 11 dígitos", async () => {
+        const cliente = await agenteLogado("ana.paula@email.com", "123456");
+
+        const res = await cliente.patch("/api/usuarios/me").send({ cpf: "123" });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toEqual({ error: "CPF deve ter 11 dígitos" });
+    });
+
+    it("400 para telefone inválido", async () => {
+        const cliente = await agenteLogado("ana.paula@email.com", "123456");
+
+        const res = await cliente.patch("/api/usuarios/me").send({ telefone: "123" });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toEqual({ error: "Telefone inválido" });
+    });
+
+    it("400 para data de nascimento inválida", async () => {
+        const cliente = await agenteLogado("ana.paula@email.com", "123456");
+
+        const res = await cliente.patch("/api/usuarios/me").send({ dt_nascimento: "20-01-1998" });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toEqual({ error: "Data de nascimento inválida (use AAAA-MM-DD)" });
+    });
+
+    it("400 para gênero fora da lista", async () => {
+        const cliente = await agenteLogado("ana.paula@email.com", "123456");
+
+        const res = await cliente.patch("/api/usuarios/me").send({ genero: "X" });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toEqual({ error: "Gênero inválido" });
+    });
+
+    it("400 para campo não permitido (whitelist)", async () => {
+        const cliente = await agenteLogado("ana.paula@email.com", "123456");
+
+        const res = await cliente.patch("/api/usuarios/me").send({ email: "hacker@email.com" });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toEqual({ error: "Campo não permitido: email" });
+    });
+
+    it("mantém o snapshot da sessão sincronizado após o PATCH", async () => {
+        const cliente = await agenteLogado("ana.paula@email.com", "123456");
+
+        const patch = await cliente.patch("/api/usuarios/me").send({ nome: "Ana Renomeada" });
+        expect(patch.status).toBe(200);
+
+        // header server-rendered usa o snapshot da sessão — deve refletir o novo nome
+        const perfil = await cliente.get("/profile");
+        expect(perfil.status).toBe(200);
+        expect(perfil.text).toContain("Ana Renomeada");
+    });
+});
