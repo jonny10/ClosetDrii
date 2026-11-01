@@ -22,5 +22,6 @@ router.use("/api", require("./api/categoria.api.routes"));
 router.use("/api", require("./api/usuario.api.routes"));
 router.use("/api", require("./api/venda.api.routes"));
 router.use("/api", require("./api/endereco.api.routes"));
+router.use("/api", require("./api/contato.api.routes"));
 
 module.exports = router;

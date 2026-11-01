@@ -119,6 +119,7 @@ CREATE TABLE IF NOT EXISTS `contatos` (
     `email` VARCHAR(255) NOT NULL COMMENT 'Email do contato',
     `assunto` VARCHAR(255) NOT NULL COMMENT 'Assunto da mensagem',
     `mensagem` TEXT NOT NULL COMMENT 'Mensagem do contato',
+    `respondida` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Flag: mensagem já respondida pelo admin',
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`)
 ) COMMENT 'Mensagens enviadas pelo formulário de contato';
