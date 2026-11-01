@@ -97,6 +97,23 @@ describe("rotas protegidas (com sessão)", () => {
         }
     );
 
+    it("contact_adm renderiza os cards de contatos no servidor (sem template)", async () => {
+        const admin = await agenteLogado("fabricio@email.com", "123456");
+
+        const res = await admin.get("/contact_adm");
+
+        expect(res.status).toBe(200);
+        // 5 contatos do seed renderizados pelo {{#each}} do Handlebars
+        expect((res.text.match(/class="message-card"/g) || []).length).toBe(5);
+        expect(res.text).not.toContain("template-message-card");
+        expect(res.text).toContain("Leticia Moura");
+        expect(res.text).toContain("Renata Figueiredo");
+        // todos os contatos do seed estão pendentes → 5 botões de marcar como respondida
+        expect((res.text.match(/Marcar como Respondida/g) || []).length).toBe(5);
+        // badge com classe e label formatados pelo controller (ex.: "Parceria")
+        expect(res.text).toContain("subject-parceria");
+    });
+
     it("após logout, rotas protegidas voltam a redirecionar para /login", async () => {
         const cliente = await agenteLogado("ana.paula@email.com", "123456");
 

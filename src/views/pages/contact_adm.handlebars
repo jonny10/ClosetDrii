@@ -19,14 +19,38 @@
     </section>
 
     <div id="messages-grid-container" class="messages-grid">
-  <div
-    id="empty-messages-alert"
-    class="empty-dashboard-state"
-    style="display: none"
-  >
-    <i class="fas fa-check-circle"></i>
-    <h3>Caixa de entrada limpa!</h3>
-    <p>Nenhuma mensagem pendente de resposta no momento.</p>
-  </div>
-</main>
+        {{#each contatos}}
+        <section class="message-card" data-id="{{id}}" data-respondida="{{respondida}}">
+            <header class="message-header">
+                <div>
+                    <h2 class="client-name">{{nome}}</h2>
+                    <h3 class="client-email">{{email}}</h3>
+                </div>
+                <span class="badge-subject subject-{{assuntoClasse}}">{{assuntoLabel}}</span>
+            </header>
 
+            <div class="message-body">
+                <p class="message-text">{{mensagem}}</p>
+            </div>
+
+            {{#unless respondida}}
+            <footer class="message-footer">
+                <button type="button" class="btn-read-action">
+                    <i class="fas fa-check"></i> Marcar como Respondida
+                </button>
+            </footer>
+            {{/unless}}
+        </section>
+        {{/each}}
+    </div>
+
+    <div
+        id="empty-messages-alert"
+        class="empty-dashboard-state"
+        style="display: none"
+    >
+        <i class="fas fa-check-circle"></i>
+        <h3>Caixa de entrada limpa!</h3>
+        <p>Nenhuma mensagem pendente de resposta no momento.</p>
+    </div>
+</main>

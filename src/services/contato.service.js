@@ -19,6 +19,7 @@ function formatarContato(contato) {
         email: contato.email,
         assunto: contato.assunto,
         mensagem: contato.mensagem,
+        respondida: contato.respondida,
         created_at: contato.created_at,
     };
 }
@@ -59,11 +60,21 @@ async function removerContato(id) {
     return true;
 }
 
+// PATCH /api/admin/contatos/:id — marca/desmarca como respondida; null se não existir
+async function marcarRespondida(id, respondida = true) {
+    const contato = await Contato.findByPk(id);
+    if (!contato) return null;
+
+    await contato.update({ respondida });
+    return formatarContato(contato);
+}
+
 module.exports = {
     listarContatos,
     buscarContato,
     criarContato,
     atualizarContato,
     removerContato,
+    marcarRespondida,
     formatarContato,
 };

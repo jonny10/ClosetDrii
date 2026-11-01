@@ -9,6 +9,7 @@ const Contato = sequelize.define(
         email: { type: DataTypes.STRING(255), allowNull: false },
         assunto: { type: DataTypes.STRING(255), allowNull: false },
         mensagem: { type: DataTypes.TEXT, allowNull: false },
+        respondida: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
     },
     {
         tableName: "contatos",

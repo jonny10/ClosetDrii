@@ -1,10 +1,7 @@
 import { showSnackbar } from "/js/global/snackbar.js";
 
-// Formulário de contato — coleta e envio.
-//
-// TODO (nova stack): enviar a mensagem via POST para a API (ex.: POST /contatos),
-//   que persiste na tabela `contatos` via Sequelize. A geração do ID e o vínculo
-//   com o usuário logado passam a ser responsabilidade do servidor (sessão).
+// Formulário de contato — envia a mensagem para POST /api/contatos,
+// que persiste na tabela `contatos` via Sequelize.
 
 document.addEventListener("DOMContentLoaded", () => {
   configurarFormularioContato();
@@ -27,11 +24,32 @@ function configurarFormularioContato() {
       mensagem: document.getElementById("contact-mensagem").value.trim(),
     };
 
-    // TODO (nova stack): POST /contatos com `dadosMensagem` e tratar a resposta.
-    console.log("Mensagem de contato (pendente integração):", dadosMensagem);
-    showSnackbar("Envio de contato ainda não integrado ao back-end.", "info");
-    form.reset();
+    showSnackbar("Enviando sua mensagem...", "info");
 
-    if (btnSubmit) btnSubmit.disabled = false;
+    try {
+      const resp = await fetch("/api/contatos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dadosMensagem),
+      });
+
+      const data = await resp.json().catch(() => ({}));
+
+      if (!resp.ok) {
+        showSnackbar(data.error || "Falha ao enviar a mensagem.", "error");
+        return;
+      }
+
+      showSnackbar(
+        "Mensagem enviada com sucesso! Breve entraremos em contato.",
+        "success",
+      );
+      form.reset();
+    } catch (err) {
+      console.error(err);
+      showSnackbar("Erro ao conectar com o servidor.", "error");
+    } finally {
+      if (btnSubmit) btnSubmit.disabled = false;
+    }
   });
 }
