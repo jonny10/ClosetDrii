@@ -1,13 +1,7 @@
 import { showSnackbar } from "/js/global/snackbar.js";
 
-// Perfil do usuário — interatividade de front-end.
-//
-// Sessão/dados agora vêm do back-end (Node/Express + Sequelize):
-//   - A proteção de rota é feita por middleware no servidor (não mais no cliente).
-//   - Os dados do usuário devem ser injetados pelo servidor na view (Handlebars)
-//     OU buscados por uma API. Salvar/sair também passam pelo back-end.
-//
-// Mantida aqui a UI: alternância leitura/edição e preview da foto.
+// Perfil do usuário — dados renderizados pelo servidor (Handlebars); aqui fica
+// a UI: alternância leitura/edição, máscaras, PATCH /api/usuarios/me e logout.
 
 document.addEventListener("DOMContentLoaded", () => {
   const profileImg = document.getElementById("profile-img");
@@ -20,9 +14,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!form) return;
 
-  // TODO (nova stack): popular os campos com os dados do usuário vindos do servidor
-  //   (idealmente já renderizados na view via Handlebars, ou via GET /perfil).
-
   // 1. Alterna o estado visual dos campos (Leitura vs Edição)
   editBtn?.addEventListener("click", () => {
     elementsToToggle.forEach((el) => {
@@ -33,31 +24,100 @@ document.addEventListener("DOMContentLoaded", () => {
     showSnackbar("Campos liberados para edição.", "info");
   });
 
-  // 2. Salvar alterações
+  // 2. Máscaras de telefone e CPF (envia só dígitos, como o signup)
+  const phoneInput = document.getElementById("phone");
+  const cpfInput = document.getElementById("cpf");
+
+  function apenasDigitos(valor) {
+    return String(valor || "").replace(/\D/g, "");
+  }
+
+  function mascaraTelefone(valor) {
+    const d = apenasDigitos(valor).slice(0, 11);
+    if (d.length <= 2) return d.length ? `(${d}` : "";
+    if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+    if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+    return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+  }
+
+  function mascaraCpf(valor) {
+    const d = apenasDigitos(valor).slice(0, 11);
+    return d
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+      .replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/, "$1.$2.$3-$4");
+  }
+
+  phoneInput?.addEventListener("input", (e) => {
+    e.target.value = mascaraTelefone(e.target.value);
+  });
+
+  cpfInput?.addEventListener("input", (e) => {
+    e.target.value = mascaraCpf(e.target.value);
+  });
+
+  // 3. Salvar alterações via PATCH /api/usuarios/me
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    const telefone = apenasDigitos(phoneInput?.value);
+    const cpf = apenasDigitos(cpfInput?.value);
+
+    if (telefone && (telefone.length < 10 || telefone.length > 11)) {
+      showSnackbar("Telefone inválido.", "error");
+      return;
+    }
+    if (cpf && cpf.length !== 11) {
+      showSnackbar("CPF deve ter 11 dígitos.", "error");
+      return;
+    }
+
     const dadosAtualizados = {
       nome: document.getElementById("name").value.trim(),
-      telefone: document.getElementById("phone").value.trim(),
-      cpf: document.getElementById("cpf").value.trim(),
+      telefone,
+      cpf,
       dt_nascimento: document.getElementById("dt_nascimento").value,
       genero: document.getElementById("genero").value,
     };
 
-    // TODO (nova stack): PUT/PATCH /perfil com `dadosAtualizados` (Sequelize no servidor).
-    console.log("Perfil (pendente integração com o back-end):", dadosAtualizados);
+    if (saveBtn) saveBtn.disabled = true;
+    showSnackbar("Salvando dados...", "info");
 
-    elementsToToggle.forEach((el) => (el.disabled = true));
-    if (editBtn) editBtn.style.display = "block";
-    if (saveBtn) saveBtn.style.display = "none";
+    try {
+      const resp = await fetch("/api/usuarios/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dadosAtualizados),
+      });
 
-    const displayName = document.getElementById("user-name-display");
-    if (displayName) displayName.textContent = dadosAtualizados.nome;
-    showSnackbar("Alterações aplicadas localmente (pendente salvar no back-end).", "success");
+      const data = await resp.json().catch(() => ({}));
+
+      if (!resp.ok) {
+        showSnackbar(data.error || "Não foi possível salvar os dados.", "error");
+        return; // mantém o formulário em modo edição pra correção
+      }
+
+      elementsToToggle.forEach((el) => (el.disabled = true));
+      if (editBtn) editBtn.style.display = "block";
+      if (saveBtn) saveBtn.style.display = "none";
+
+      const displayName = document.getElementById("user-name-display");
+      if (displayName) displayName.textContent = data.nome;
+
+      // telefone/cpf voltam mascarados na próxima edição
+      if (phoneInput) phoneInput.value = mascaraTelefone(data.telefone);
+      if (cpfInput) cpfInput.value = mascaraCpf(data.cpf);
+
+      showSnackbar("Informações salvas com sucesso!", "success");
+    } catch (err) {
+      console.error(err);
+      showSnackbar("Erro ao conectar com o servidor.", "error");
+    } finally {
+      if (saveBtn) saveBtn.disabled = false;
+    }
   });
 
-  // 3. Upload/preview da foto de perfil (apenas visual no cliente)
+  // 4. Upload/preview da foto de perfil (apenas visual no cliente)
   const triggerPicBox = document.querySelector(".profile-pic-container");
   if (triggerPicBox && fileInput) {
     triggerPicBox.addEventListener("click", () => fileInput.click());
@@ -70,17 +130,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const reader = new FileReader();
     reader.onload = (event) => {
       if (profileImg) profileImg.src = event.target.result;
-      // TODO (nova stack): enviar a imagem para o back-end (upload) e persistir a URL.
       showSnackbar("Pré-visualização atualizada (upload pendente no back-end).", "success");
     };
     reader.readAsDataURL(file);
   });
 
-  // 4. Logout
+  // 5. Logout: encerra a sessão no servidor e volta pra home
   sidebarLogoutBtn?.addEventListener("click", async (e) => {
     e.preventDefault();
-    // TODO (nova stack): encerrar a sessão no servidor (ex.: POST /logout) e redirecionar.
-    //   await fetch("/logout", { method: "POST" }); window.location.href = "/";
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (err) {
+      console.error("Erro ao efetuar logout pela sidebar:", err);
+    }
     window.location.href = "/";
   });
 });
