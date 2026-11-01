@@ -25,7 +25,7 @@ body {
 }
 
 .products-wrapper {
-  padding: calc(110px) 32px 40px;
+  padding: 32px;
   margin: auto;
 }
 
@@ -57,8 +57,6 @@ body {
 
 .history-layout-grid {
   width: 100%;
-  max-width: 960px; /* Layout centralizado e elegante para leitura do histórico */
-  margin: 0 auto;
 }
 
 .orders-list-section {

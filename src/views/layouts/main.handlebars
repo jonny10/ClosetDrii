@@ -16,9 +16,13 @@
 <body>
     {{> header}}
 
-    {{{body}}}
+    {{!-- Área rolável abaixo do header fixo: a página inteira rola dentro
+         deste "retângulo" e nunca passa por baixo do header --}}
+    <main class="page-scroll">
+        {{{body}}}
+        {{> footer}}
+    </main>
 
-    {{> footer}}
     {{> product-modal}}
     {{> snackbar}}
 

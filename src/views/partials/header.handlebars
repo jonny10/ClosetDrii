@@ -11,84 +11,43 @@
         </a>
 
         <nav class="nav-menu" id="navMenu">
-          <a
-            href="/"
-            class="nav-link"
-            data-role="cliente"
-          >
-            Home
-          </a>
-          <a
-            href="/produtos"
-            class="nav-link"
-            data-role="cliente"
-            >Produtos</a
-          >
-          <a
-            href="/cart"
-            class="nav-link"
-            data-role="cliente"
-            >Carrinho</a
-          >
+          <a href="/" class="nav-link">Home</a>
+          <a href="/produtos" class="nav-link">Produtos</a>
+          <a href="/cart" class="nav-link">Carrinho</a>
 
-          <a
-            href="/dados"
-            class="nav-link"
-            data-role="admin"
-            style="display: none"
-            >Dados</a
-          >
-          <a
-            href="/catalogo"
-            class="nav-link"
-            data-role="admin"
-            style="display: none"
-            >Catálogo</a
-          >
-          <a
-            href="/vendas"
-            class="nav-link"
-            data-role="admin"
-            style="display: none"
-          >
-            Vendas
-          </a>
-
-          <a
-            href="/contact-admin"
-            class="nav-link"
-            data-role="admin"
-            style="display: none"
-          >
-            Atendimento
-          </a>
+          {{#if isAdmin}}
+          <a href="/dados" class="nav-link">Dados</a>
+          <a href="/catalogo" class="nav-link">Catálogo</a>
+          <a href="/vendas" class="nav-link">Vendas</a>
+          <a href="/contact_adm" class="nav-link">Atendimento</a>
+          {{/if}}
         </nav>
       </div>
 
       <div class="nav-right">
-        <div class="guest-actions" data-auth="guest">
-          <a href="/login" class="nav-btn secondary"
-            >Login</a
-          >
-          <a href="/signup" class="nav-btn primary"
-            >Cadastrar-se</a
-          >
+        {{#unless user}}
+        <div class="guest-actions">
+          <a href="/login" class="nav-btn secondary">Login</a>
+          <a href="/signup" class="nav-btn primary">Cadastrar-se</a>
         </div>
+        {{/unless}}
 
-        <div
-          class="user-actions"
-          data-auth="user"
-          style="display: none; align-items: center; gap: 16px"
-        >
-          <a
-            href="/profile"
-            class="nav-profile-btn"
-            title="Meu Perfil"
-          >
+        {{#if user}}
+        <div class="user-actions">
+          <a href="/profile" class="nav-profile-btn" title="Meu Perfil">
             <i class="far fa-user-circle"></i>
-            <span class="user-name">Perfil</span>
+            <span class="user-name">{{user.nome}}</span>
           </a>
+          <button
+            type="button"
+            id="btn-logout"
+            class="nav-btn secondary nav-logout-btn"
+            title="Sair da conta"
+          >
+            <i class="fas fa-sign-out-alt"></i> Sair
+          </button>
         </div>
+        {{/if}}
 
         <button class="menu-toggle-btn" id="menuToggle" aria-label="Abrir Menu">
           <i class="fas fa-bars"></i>

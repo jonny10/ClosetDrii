@@ -26,17 +26,10 @@ body {
 
 /* GERAL E HEADER ADMINISTRATIVO */
 .admin-crud-layout {
-  padding: 120px 32px 40px; /* Alinha o padding simétrico com a página de produtos */
-  max-width: 1400px;
-  margin: 0 auto;
+  padding: 32px; /* Alinha o padding simétrico com a página de produtos */
 }
 
 /* GERAL E HEADER ADMINISTRATIVO */
-.admin-crud-layout {
-  padding-top: 120px;
-  max-width: 1400px;
-  margin: 0 auto;
-}
 
 .admin-header-actions {
   display: flex;

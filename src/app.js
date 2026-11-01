@@ -22,9 +22,10 @@ app.use(session({
     saveUninitialized: false,
 }));
 
-// --- Disponibiliza dados p/ todas as views (ex.: usuário logado) ---
+// --- Disponibiliza dados p/ todas as views (ex.: usuário logado no header) ---
 app.use((req, res, next) => {
-    res.locals.user = req.user || null; // preenchido futuramente pelo middleware de auth
+    res.locals.user = req.session?.user || null; // snapshot da sessão (login/signup)
+    res.locals.isAdmin = res.locals.user?.perfil === "admin";
     next();
 });
 
