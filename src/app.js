@@ -15,6 +15,7 @@ app.set("views", path.join(__dirname, "views"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // formulários HTML (login, cadastro)
 app.use(express.static(path.join(__dirname, "..", "public")));
+app.use("/uploads", express.static(path.join(__dirname, "..", "uploads"))); // comprovantes de pagamento
 app.use(session({
     secret: process.env.SESSION_SECRET || "closetdrii-session-dev",
     resave: false,

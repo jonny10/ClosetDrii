@@ -84,6 +84,7 @@ CREATE TABLE IF NOT EXISTS `vendas` (
     `usuario_id` INT NOT NULL COMMENT 'FK para usuario.id - id do usuário ao qual pertence essa venda',
     `status` ENUM('pendente', 'pago', 'cancelado', 'enviado') DEFAULT 'pendente' COMMENT 'Status da venda',
     `endereco_entrega_id` INT COMMENT 'FK para enderecos.id - endereço de entrega da venda',
+    `comprovante_url` VARCHAR(255) COMMENT 'URL do comprovante de pagamento enviado pelo cliente',
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),

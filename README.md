@@ -167,6 +167,7 @@ e alinhado aos demais repositórios da equipe:
 - Controllers finos: orquestram a requisição, delegam a regra de negócio e renderizam a view.
 - Views em Handlebars: layout base em `layouts/main.handlebars`, trechos reutilizáveis em `partials/`.
 - Controle de acesso (admin) sempre validado no servidor.
+- Carrinho no `localStorage` (estado de UI): o servidor valida estoque e recalcula preços apenas no checkout (`POST /api/vendas`).
 
 ---
 

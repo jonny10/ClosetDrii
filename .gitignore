@@ -3,3 +3,6 @@ node_modules/
 
 # Variáveis de ambiente / segredos
 .env
+
+# Uploads de comprovantes
+uploads/

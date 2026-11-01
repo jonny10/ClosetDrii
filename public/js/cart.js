@@ -2,11 +2,10 @@ import { showSnackbar } from "/js/global/snackbar.js";
 
 // Carrinho — gestão no cliente (localStorage), renderização e checkout.
 //
-// A FINALIZAÇÃO da compra (validação de estoque + gravação de venda) agora é do
-// back-end (Node/Express + Sequelize), dentro de uma transação SQL.
-// TODO (nova stack): enviar o carrinho via POST para a API (ex.: POST /checkout).
-//   O servidor valida estoque, cria a venda/itens e responde com o id do pedido;
-//   o front então limpa o carrinho e abre o modal de instruções (WhatsApp).
+// A FINALIZAÇÃO da compra é do back-end (Node/Express + Sequelize): o botão
+// envia o carrinho via POST /api/vendas, o servidor valida o estoque e recalcula
+// os preços numa transação SQL (nunca confia no preço do cliente), e o front
+// limpa o carrinho local e abre o modal de instruções (WhatsApp) com o pedido.
 
 const CART_STORAGE_KEY = "carrinho";
 let itensCarrinho = getCartFromStorage();
@@ -163,9 +162,9 @@ function atualizarResumoFinanceiro() {
   if (btnCheckout) btnCheckout.disabled = itensCarrinho.length === 0;
 }
 
-// Finalização da compra.
-// TODO (nova stack): toda a validação de estoque e a gravação de venda/itens
-// devem ocorrer no back-end, dentro de uma transação SQL (Sequelize).
+// Finalização da compra: envia o carrinho pro back-end (POST /api/vendas), que
+// valida estoque, recalcula os preços pelo banco e cria a venda `pendente`.
+// Em sucesso, limpa o carrinho local e abre o modal de instruções (WhatsApp).
 async function processarCheckout() {
   const btnCheckout = document.getElementById("btn-checkout");
   if (itensCarrinho.length === 0) return;
@@ -173,24 +172,48 @@ async function processarCheckout() {
   if (btnCheckout) btnCheckout.disabled = true;
   showSnackbar("Processando seu pedido, aguarde...", "info");
 
-  // Payload que deve ser enviado ao back-end
+  // Payload mínimo: o servidor ignora preço e busca tudo no banco
   const payloadPedido = {
     itens: itensCarrinho.map((item) => ({
-      id_variante: item.id_variante,
-      quantidade: item.quantidade,
+      id_variante: Number(item.id_variante),
+      quantidade: Number(item.quantidade),
     })),
   };
 
-  // TODO (nova stack): POST /checkout com `payloadPedido`.
-  //   const resp = await fetch("/checkout", { method: "POST", headers: {...}, body: JSON.stringify(payloadPedido) });
-  //   if (resp.ok) {
-  //     const { vendaId, total, nomeCliente } = await resp.json();
-  //     itensCarrinho = []; localStorage.removeItem(CART_STORAGE_KEY); renderizarCarrinho();
-  //     abrirModalInstrucoesCheckout(vendaId, total, nomeCliente);
-  //   } else { showSnackbar("Falha ao finalizar o pedido.", "invalid"); }
-  console.log("Checkout (pendente integração com o back-end):", payloadPedido);
-  showSnackbar("Checkout ainda não integrado ao back-end.", "info");
-  if (btnCheckout) btnCheckout.disabled = false;
+  try {
+    const resp = await fetch("/api/vendas", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payloadPedido),
+    });
+
+    // Sem sessão não dá pra fechar pedido — manda pro login (o carrinho fica salvo no localStorage)
+    if (resp.status === 401) {
+      window.location.href = "/login";
+      return;
+    }
+
+    if (!resp.ok) {
+      const erro = await resp.json().catch(() => ({}));
+      showSnackbar(erro.error || "Falha ao finalizar o pedido.", "invalid");
+      if (btnCheckout) btnCheckout.disabled = false;
+      return;
+    }
+
+    const venda = await resp.json();
+    itensCarrinho = [];
+    localStorage.removeItem(CART_STORAGE_KEY);
+    renderizarCarrinho();
+    abrirModalInstrucoesCheckout(
+      venda.id,
+      Number(venda.valor_total),
+      venda.usuario?.nome ?? "cliente"
+    );
+  } catch (err) {
+    console.error("Erro ao finalizar o pedido:", err);
+    showSnackbar("Falha ao finalizar o pedido. Tente novamente.", "invalid");
+    if (btnCheckout) btnCheckout.disabled = false;
+  }
 }
 
 // Inicialização única de listeners
