@@ -57,6 +57,28 @@
               <option value="cancelado">Cancelado</option>
             </select>
           </div>
+
+          <div class="admin-comprovante-block">
+            <a class="comprovante-link" href="#" target="_blank" style="display: none">
+              <i class="fas fa-receipt"></i> Ver comprovante
+            </a>
+            <button
+              type="button"
+              class="comprovante-remove-btn"
+              title="Remover comprovante"
+              style="display: none"
+            >
+              <i class="fas fa-trash-alt"></i>
+            </button>
+            <label class="comprovante-upload-label">
+              <i class="fas fa-paperclip"></i> Anexar comprovante
+              <input
+                type="file"
+                class="comprovante-input"
+                accept="image/jpeg,image/png,image/webp"
+              />
+            </label>
+          </div>
         </div>
       </div>
     </template>

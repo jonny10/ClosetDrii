@@ -269,7 +269,7 @@ describe("GET /api/vendas/minhas", () => {
     });
 });
 
-describe("POST /api/vendas/:id/comprovante", () => {
+describe("POST /api/admin/vendas/:id/comprovante", () => {
     const arquivosCriados = [];
 
     beforeAll(async () => {
@@ -285,18 +285,32 @@ describe("POST /api/vendas/:id/comprovante", () => {
 
     it("401 sem sessão", async () => {
         const res = await request(app)
-            .post("/api/vendas/1/comprovante")
+            .post("/api/admin/vendas/1/comprovante")
             .attach("comprovante", PNG_1PX, { filename: "c.png", contentType: "image/png" });
 
         expect(res.status).toBe(401);
         expect(res.body).toEqual({ error: "Não autenticado" });
     });
 
-    it("200 vincula o comprovante à venda do próprio usuário", async () => {
+    it("403 para cliente logado (só o admin anexa comprovante)", async () => {
         const agente = await loginCliente();
 
         const res = await agente
-            .post("/api/vendas/1/comprovante")
+            .post("/api/admin/vendas/1/comprovante")
+            .attach("comprovante", PNG_1PX, {
+                filename: "comprovante.png",
+                contentType: "image/png",
+            });
+
+        expect(res.status).toBe(403);
+        expect(res.body).toEqual({ error: "Acesso restrito a administradores" });
+    });
+
+    it("200 admin vincula o comprovante a qualquer venda", async () => {
+        const agente = await loginAdmin(); // venda 1 é da Ana Paula — o admin anexa mesmo assim
+
+        const res = await agente
+            .post("/api/admin/vendas/1/comprovante")
             .attach("comprovante", PNG_1PX, {
                 filename: "comprovante.png",
                 contentType: "image/png",
@@ -315,10 +329,10 @@ describe("POST /api/vendas/:id/comprovante", () => {
     });
 
     it("404 para venda inexistente", async () => {
-        const agente = await loginCliente();
+        const agente = await loginAdmin();
 
         const res = await agente
-            .post("/api/vendas/9999/comprovante")
+            .post("/api/admin/vendas/9999/comprovante")
             .attach("comprovante", PNG_1PX, {
                 filename: "comprovante.png",
                 contentType: "image/png",
@@ -329,24 +343,10 @@ describe("POST /api/vendas/:id/comprovante", () => {
     });
 
     it("404 para id inválido na URL", async () => {
-        const agente = await loginCliente();
+        const agente = await loginAdmin();
 
         const res = await agente
-            .post("/api/vendas/abc/comprovante")
-            .attach("comprovante", PNG_1PX, {
-                filename: "comprovante.png",
-                contentType: "image/png",
-            });
-
-        expect(res.status).toBe(404);
-        expect(res.body).toEqual({ error: "Venda não encontrada" });
-    });
-
-    it("404 para venda de outro usuário", async () => {
-        const agente = await loginAdmin(); // venda 1 é da Ana Paula
-
-        const res = await agente
-            .post("/api/vendas/1/comprovante")
+            .post("/api/admin/vendas/abc/comprovante")
             .attach("comprovante", PNG_1PX, {
                 filename: "comprovante.png",
                 contentType: "image/png",
@@ -357,10 +357,10 @@ describe("POST /api/vendas/:id/comprovante", () => {
     });
 
     it("400 para tipo de arquivo não permitido", async () => {
-        const agente = await loginCliente();
+        const agente = await loginAdmin();
 
         const res = await agente
-            .post("/api/vendas/1/comprovante")
+            .post("/api/admin/vendas/1/comprovante")
             .attach("comprovante", Buffer.from("nota fiscal fake"), {
                 filename: "nota.txt",
                 contentType: "text/plain",
@@ -371,11 +371,11 @@ describe("POST /api/vendas/:id/comprovante", () => {
     });
 
     it("400 para arquivo acima de 5MB", async () => {
-        const agente = await loginCliente();
+        const agente = await loginAdmin();
         const arquivoGrande = Buffer.alloc(5 * 1024 * 1024 + 1, 1);
 
         const res = await agente
-            .post("/api/vendas/1/comprovante")
+            .post("/api/admin/vendas/1/comprovante")
             .attach("comprovante", arquivoGrande, {
                 filename: "grande.png",
                 contentType: "image/png",
@@ -386,10 +386,10 @@ describe("POST /api/vendas/:id/comprovante", () => {
     });
 
     it("serve o comprovante enviado via GET /uploads", async () => {
-        const agente = await loginCliente();
+        const agente = await loginAdmin();
 
         const upload = await agente
-            .post("/api/vendas/1/comprovante")
+            .post("/api/admin/vendas/1/comprovante")
             .attach("comprovante", PNG_1PX, {
                 filename: "comprovante.png",
                 contentType: "image/png",
@@ -406,11 +406,178 @@ describe("POST /api/vendas/:id/comprovante", () => {
     });
 
     it("400 sem arquivo", async () => {
-        const agente = await loginCliente();
+        const agente = await loginAdmin();
 
-        const res = await agente.post("/api/vendas/1/comprovante");
+        const res = await agente.post("/api/admin/vendas/1/comprovante");
 
         expect(res.status).toBe(400);
         expect(res.body).toEqual({ error: "Arquivo do comprovante é obrigatório" });
+    });
+});
+
+describe("GET /api/admin/vendas", () => {
+    beforeAll(async () => {
+        await sequelize.sync({ force: true });
+        await seed();
+    });
+
+    it("401 sem sessão", async () => {
+        const res = await request(app).get("/api/admin/vendas");
+
+        expect(res.status).toBe(401);
+        expect(res.body).toEqual({ error: "Não autenticado" });
+    });
+
+    it("403 para cliente logado", async () => {
+        const agente = await loginCliente();
+
+        const res = await agente.get("/api/admin/vendas");
+
+        expect(res.status).toBe(403);
+        expect(res.body).toEqual({ error: "Acesso restrito a administradores" });
+    });
+
+    it("admin lista todas as vendas com cliente e itens", async () => {
+        const agente = await loginAdmin();
+
+        const res = await agente.get("/api/admin/vendas");
+
+        expect(res.status).toBe(200);
+        expect(res.body).toHaveLength(15); // 15 vendas no seed
+
+        const venda1 = res.body.find((venda) => venda.id === 1);
+        expect(venda1.usuario.nome).toBe("Ana Paula Ferreira");
+        expect(venda1.itens).toHaveLength(2);
+
+        const item = venda1.itens.find((i) => i.produto_variante_id === 1);
+        expect(item.produto_variante.produto.nome).toBe("Vestido Floral Midi");
+    });
+});
+
+describe("PATCH /api/admin/vendas/:id/status", () => {
+    beforeAll(async () => {
+        await sequelize.sync({ force: true });
+        await seed();
+    });
+
+    it("401 sem sessão", async () => {
+        const res = await request(app)
+            .patch("/api/admin/vendas/1/status")
+            .send({ status: "enviado" });
+
+        expect(res.status).toBe(401);
+        expect(res.body).toEqual({ error: "Não autenticado" });
+    });
+
+    it("403 para cliente logado", async () => {
+        const agente = await loginCliente();
+
+        const res = await agente.patch("/api/admin/vendas/1/status").send({ status: "pago" });
+
+        expect(res.status).toBe(403);
+        expect(res.body).toEqual({ error: "Acesso restrito a administradores" });
+    });
+
+    it("admin altera o status da venda", async () => {
+        const agente = await loginAdmin();
+
+        const res = await agente
+            .patch("/api/admin/vendas/1/status")
+            .send({ status: "enviado" });
+
+        expect(res.status).toBe(200);
+        expect(res.body).toMatchObject({ id: 1, status: "enviado" });
+        expect((await Venda.findByPk(1)).status).toBe("enviado");
+    });
+
+    it("400 para status inválido", async () => {
+        const agente = await loginAdmin();
+
+        const res = await agente
+            .patch("/api/admin/vendas/1/status")
+            .send({ status: "entregue" });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toEqual({ error: "Status inválido" });
+    });
+
+    it("404 para venda inexistente", async () => {
+        const agente = await loginAdmin();
+
+        const res = await agente
+            .patch("/api/admin/vendas/9999/status")
+            .send({ status: "pago" });
+
+        expect(res.status).toBe(404);
+        expect(res.body).toEqual({ error: "Venda não encontrada" });
+    });
+});
+
+describe("DELETE /api/admin/vendas/:id/comprovante", () => {
+    beforeAll(async () => {
+        await sequelize.sync({ force: true });
+        await seed();
+    });
+
+    it("401 sem sessão", async () => {
+        const res = await request(app).delete("/api/admin/vendas/1/comprovante");
+
+        expect(res.status).toBe(401);
+        expect(res.body).toEqual({ error: "Não autenticado" });
+    });
+
+    it("403 para cliente logado", async () => {
+        const agente = await loginCliente();
+
+        const res = await agente.delete("/api/admin/vendas/1/comprovante");
+
+        expect(res.status).toBe(403);
+        expect(res.body).toEqual({ error: "Acesso restrito a administradores" });
+    });
+
+    it("admin remove o vínculo e apaga o arquivo do disco", async () => {
+        // simula um comprovante já anexado (arquivo real no disco)
+        const nomeArquivo = "comprovante-teste-remocao.png";
+        const arquivo = path.join(REPO_ROOT, "uploads", "comprovantes", nomeArquivo);
+        fs.writeFileSync(arquivo, PNG_1PX);
+
+        const venda = await Venda.findByPk(1);
+        venda.comprovante_url = `/uploads/comprovantes/${nomeArquivo}`;
+        await venda.save();
+
+        const agente = await loginAdmin();
+        const res = await agente.delete("/api/admin/vendas/1/comprovante");
+
+        expect(res.status).toBe(200);
+        expect(res.body.comprovante_url).toBeNull();
+        expect((await Venda.findByPk(1)).comprovante_url).toBeNull();
+        expect(fs.existsSync(arquivo)).toBe(false);
+    });
+
+    it("200 idempotente quando a venda não tem comprovante", async () => {
+        const agente = await loginAdmin();
+
+        const res = await agente.delete("/api/admin/vendas/1/comprovante");
+
+        expect(res.status).toBe(200);
+        expect(res.body.comprovante_url).toBeNull();
+    });
+
+    it("404 para venda inexistente", async () => {
+        const agente = await loginAdmin();
+
+        const res = await agente.delete("/api/admin/vendas/9999/comprovante");
+
+        expect(res.status).toBe(404);
+        expect(res.body).toEqual({ error: "Venda não encontrada" });
+    });
+
+    it("404 para id inválido na URL", async () => {
+        const agente = await loginAdmin();
+
+        const res = await agente.delete("/api/admin/vendas/abc/comprovante");
+
+        expect(res.status).toBe(404);
+        expect(res.body).toEqual({ error: "Venda não encontrada" });
     });
 });

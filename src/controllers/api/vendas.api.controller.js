@@ -1,5 +1,6 @@
 const fs = require("fs");
 const vendaService = require("../../services/venda.service");
+const uploadComprovante = require("../../middlewares/upload-comprovante.middleware");
 
 // Valida o corpo do checkout: array não-vazio de itens com id_variante/quantidade
 // inteiros positivos, sem duplicatas (o carrinho já deduplica, mas o servidor revalida).
@@ -67,8 +68,8 @@ async function listarMinhas(req, res, next) {
     }
 }
 
-// POST /api/vendas/:id/comprovante — vincula o comprovante enviado pelo multer à
-// venda do próprio usuário (404 tanto pra inexistente quanto pra venda de terceiro)
+// POST /api/admin/vendas/:id/comprovante — o admin anexa o comprovante recebido por
+// WhatsApp (o upload é feito pelo multer antes de chegar aqui)
 async function vincularComprovante(req, res, next) {
     try {
         const vendaId = Number.parseInt(req.params.id, 10);
@@ -78,11 +79,7 @@ async function vincularComprovante(req, res, next) {
             return res.status(404).json({ error: "Venda não encontrada" });
         }
 
-        const venda = await vendaService.vincularComprovante(
-            vendaId,
-            req.session.user.id,
-            req.comprovanteUrl
-        );
+        const venda = await vendaService.vincularComprovante(vendaId, req.comprovanteUrl);
 
         if (!venda) {
             fs.unlink(req.file.path, () => {});
@@ -95,8 +92,74 @@ async function vincularComprovante(req, res, next) {
     }
 }
 
+// GET /api/admin/vendas — painel do admin: todas as vendas com cliente e itens
+async function listarTodas(req, res, next) {
+    try {
+        const vendas = await vendaService.listarVendas({});
+        return res.json(vendas);
+    } catch (err) {
+        next(err);
+    }
+}
+
+const STATUS_PERMITIDOS = ["pendente", "pago", "enviado", "cancelado"];
+
+// PATCH /api/admin/vendas/:id/status — muda o status da venda (admin)
+async function atualizarStatus(req, res, next) {
+    try {
+        const vendaId = Number.parseInt(req.params.id, 10);
+        const { status } = req.body || {};
+
+        if (!STATUS_PERMITIDOS.includes(status)) {
+            return res.status(400).json({ error: "Status inválido" });
+        }
+
+        if (!Number.isInteger(vendaId) || vendaId <= 0) {
+            return res.status(404).json({ error: "Venda não encontrada" });
+        }
+
+        const venda = await vendaService.atualizarVenda(vendaId, { status });
+
+        if (!venda) {
+            return res.status(404).json({ error: "Venda não encontrada" });
+        }
+
+        return res.json(venda);
+    } catch (err) {
+        next(err);
+    }
+}
+
+// DELETE /api/admin/vendas/:id/comprovante — remove o comprovante da venda (admin)
+async function removerComprovante(req, res, next) {
+    try {
+        const vendaId = Number.parseInt(req.params.id, 10);
+        if (!Number.isInteger(vendaId) || vendaId <= 0) {
+            return res.status(404).json({ error: "Venda não encontrada" });
+        }
+
+        const resultado = await vendaService.removerComprovante(vendaId);
+        if (!resultado) {
+            return res.status(404).json({ error: "Venda não encontrada" });
+        }
+
+        // apaga o arquivo do disco quando existir (idempotente)
+        const caminho = uploadComprovante.caminhoComprovante(resultado.urlAntiga);
+        if (caminho) {
+            fs.unlink(caminho, () => {});
+        }
+
+        return res.json(resultado.venda);
+    } catch (err) {
+        next(err);
+    }
+}
+
 module.exports = {
     fecharPedido,
     listarMinhas,
     vincularComprovante,
+    listarTodas,
+    atualizarStatus,
+    removerComprovante,
 };

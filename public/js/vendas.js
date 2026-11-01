@@ -1,32 +1,41 @@
 import { showSnackbar } from "/js/global/snackbar.js";
 
-// Vendas (admin) — painel de pedidos.
-//
-// Proteção de rota (admin) e dados agora são do back-end (Node/Express + Sequelize).
-// Mantida aqui a UI: render em memória, filtros por status. A carga de dados e a
-// mudança de status viram TODO (API/Sequelize).
+// Vendas (admin) — painel de pedidos: os dados e a mudança de status vêm do
+// back-end (GET /api/admin/vendas e PATCH /api/admin/vendas/:id/status).
+// O comprovante (recebido por WhatsApp) é anexado pelo próprio admin assim que
+// o arquivo é escolhido (POST /api/admin/vendas/:id/comprovante) e pode ser
+// removido pelo botão de lixeira (DELETE /api/admin/vendas/:id/comprovante).
 
 let vendasGerais = [];
-let usuariosMap = {};
-let itensPorVendaMap = {};
 let filtroStatusAtual = "todos";
 
 document.addEventListener("DOMContentLoaded", () => {
-  // TODO (nova stack): proteger a rota no servidor e carregar os dados do back-end.
   inicializarDadosPainel();
   setupFiltrosEventos();
 });
 
-// TODO (nova stack): buscar vendas + itens + variantes + usuários do back-end
-// (idealmente já cruzados/paginados pelo servidor) e popular os estados abaixo.
+// Carrega as vendas do back-end (já com cliente e itens cruzados pelo servidor)
 async function inicializarDadosPainel() {
-  vendasGerais = [];
-  usuariosMap = {};
-  itensPorVendaMap = {};
+  try {
+    const resp = await fetch("/api/admin/vendas");
+
+    if (!resp.ok) {
+      const erro = await resp.json().catch(() => ({}));
+      showSnackbar(erro.error || "Erro ao carregar os pedidos.", "invalid");
+      return;
+    }
+
+    vendasGerais = await resp.json();
+  } catch (err) {
+    console.error(err);
+    showSnackbar("Erro ao conectar com o servidor.", "invalid");
+    return;
+  }
+
   aplicarFiltroEHRender();
 }
 
-// Filtra a base local em cache
+// Filtra a base em memória pelo status selecionado
 function aplicarFiltroEHRender() {
   const container = document.getElementById("admin-orders-container");
   const emptyMessage = document.getElementById("no-orders-message");
@@ -66,10 +75,10 @@ function renderizarVendasPainel(lista, container) {
   lista.forEach((venda) => {
     const cardClone = cardTemplate.content.cloneNode(true);
     const vendaId = venda.id;
-    const cliente = usuariosMap[venda.usuario_id] || { nome: "Cliente Desconhecido" };
+    const cliente = venda.usuario?.nome || "Cliente Desconhecido";
 
     cardClone.querySelector(".order-id").textContent = `#${String(vendaId).padStart(4, "0")}`;
-    cardClone.querySelector(".order-client-name").textContent = cliente.nome;
+    cardClone.querySelector(".order-client-name").textContent = cliente;
     cardClone.querySelector(".order-total-price").textContent = Number(
       venda.valor_total,
     ).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -82,23 +91,45 @@ function renderizarVendasPainel(lista, container) {
     selectStatus.value = venda.status.toLowerCase();
 
     const itemsListContainer = cardClone.querySelector(".order-products-rows-list");
-    const produtosDessaVenda = itensPorVendaMap[vendaId] || [];
-
-    produtosDessaVenda.forEach((item) => {
+    (venda.itens || []).forEach((item) => {
+      const variante = item.produto_variante || {};
       const itemClone = itemTemplate.content.cloneNode(true);
-      itemClone.querySelector(".cart-nome").textContent = item.nome;
-      itemClone.querySelector(".cart-cor").textContent = item.cor;
-      itemClone.querySelector(".cart-tamanho").textContent = item.tamanho;
+      itemClone.querySelector(".cart-nome").textContent =
+        variante.produto?.nome || "Produto";
+      itemClone.querySelector(".cart-cor").textContent = variante.cor || "-";
+      itemClone.querySelector(".cart-tamanho").textContent = variante.tamanho || "-";
       itemClone.querySelector(".qty-count").textContent = item.quantidade;
-      itemClone.querySelector(".cart-img").src = item.imagem_url || "/assets/img/logo.png";
+      itemClone.querySelector(".cart-img").src =
+        variante.imagem_url || "/assets/img/logo.png";
       itemClone.querySelector(".cart-subtotal-item").textContent = Number(
-        item.valorTotalItem,
+        item.valor,
       ).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
       itemsListContainer.appendChild(itemClone);
     });
 
-    selectStatus.addEventListener("change", async (e) => {
-      await modificarStatusPedido(vendaId, e.target.value);
+    // Comprovante: link + botão de remover quando existe; o upload dispara
+    // na hora em que o admin escolhe o arquivo
+    const linkComprovante = cardClone.querySelector(".comprovante-link");
+    const btnRemoverComprovante = cardClone.querySelector(".comprovante-remove-btn");
+    if (venda.comprovante_url) {
+      linkComprovante.href = venda.comprovante_url;
+      linkComprovante.style.display = "";
+      btnRemoverComprovante.style.display = "";
+    }
+
+    const inputComprovante = cardClone.querySelector(".comprovante-input");
+    inputComprovante.addEventListener("change", () => {
+      const arquivo = inputComprovante.files?.[0] ?? null;
+      inputComprovante.value = ""; // evita upload duplicado se o change disparar 2x
+      if (arquivo) enviarComprovante(vendaId, arquivo);
+    });
+
+    btnRemoverComprovante.addEventListener("click", () => {
+      removerComprovanteAnexado(vendaId);
+    });
+
+    selectStatus.addEventListener("change", (e) => {
+      modificarStatusPedido(vendaId, e.target.value);
     });
 
     fragmentoVisual.appendChild(cardClone);
@@ -108,18 +139,93 @@ function renderizarVendasPainel(lista, container) {
   container.appendChild(fragmentoVisual);
 }
 
-// TODO (nova stack): atualizar o status via API (PATCH /admin/vendas/:id).
+// Sobe o comprovante assim que o admin escolhe o arquivo e atualiza o card na
+// hora — o link "Ver comprovante" aparece imediatamente, sem recarregar a página
+async function enviarComprovante(vendaId, arquivo) {
+  try {
+    const formData = new FormData();
+    formData.append("comprovante", arquivo);
+
+    const upload = await fetch(`/api/admin/vendas/${vendaId}/comprovante`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!upload.ok) {
+      const erro = await upload.json().catch(() => ({}));
+      showSnackbar(erro.error || "Erro ao enviar o comprovante.", "invalid");
+      return;
+    }
+
+    const venda = await upload.json();
+    const vendaLocal = vendasGerais.find((v) => v.id === vendaId);
+    if (vendaLocal) vendaLocal.comprovante_url = venda.comprovante_url;
+
+    showSnackbar(
+      `Comprovante do pedido #${String(vendaId).padStart(4, "0")} anexado!`,
+      "success",
+    );
+    aplicarFiltroEHRender();
+  } catch (err) {
+    console.error(err);
+    showSnackbar("Erro ao conectar com o servidor.", "invalid");
+  }
+}
+
+// Remove o comprovante (vínculo no banco + arquivo do disco) e atualiza o card
+async function removerComprovanteAnexado(vendaId) {
+  if (!confirm("Remover o comprovante deste pedido?")) return;
+
+  try {
+    const resp = await fetch(`/api/admin/vendas/${vendaId}/comprovante`, {
+      method: "DELETE",
+    });
+
+    if (!resp.ok) {
+      const erro = await resp.json().catch(() => ({}));
+      showSnackbar(erro.error || "Erro ao remover o comprovante.", "invalid");
+      return;
+    }
+
+    const vendaLocal = vendasGerais.find((v) => v.id === vendaId);
+    if (vendaLocal) vendaLocal.comprovante_url = null;
+
+    showSnackbar("Comprovante removido.", "success");
+    aplicarFiltroEHRender();
+  } catch (err) {
+    console.error(err);
+    showSnackbar("Erro ao conectar com o servidor.", "invalid");
+  }
+}
+
+// Altera o status da venda no servidor e atualiza o card
 async function modificarStatusPedido(vendaId, novoStatus) {
-  console.log("Alteração de status (pendente integração):", { vendaId, novoStatus });
+  try {
+    const resp = await fetch(`/api/admin/vendas/${vendaId}/status`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: novoStatus }),
+    });
 
-  const vendaLocal = vendasGerais.find((v) => v.id === vendaId);
-  if (vendaLocal) vendaLocal.status = novoStatus;
+    if (!resp.ok) {
+      const erro = await resp.json().catch(() => ({}));
+      showSnackbar(erro.error || "Erro ao alterar o status.", "invalid");
+      return;
+    }
 
-  showSnackbar(
-    `Status do pedido #${vendaId} alterado localmente (pendente salvar no back-end).`,
-    "success",
-  );
-  aplicarFiltroEHRender();
+    const venda = await resp.json();
+    const vendaLocal = vendasGerais.find((v) => v.id === vendaId);
+    if (vendaLocal) vendaLocal.status = venda.status;
+
+    showSnackbar(
+      `Status do pedido #${String(vendaId).padStart(4, "0")} atualizado!`,
+      "success",
+    );
+    aplicarFiltroEHRender();
+  } catch (err) {
+    console.error(err);
+    showSnackbar("Erro ao conectar com o servidor.", "invalid");
+  }
 }
 
 function setupFiltrosEventos() {

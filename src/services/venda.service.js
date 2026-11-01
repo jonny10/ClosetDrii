@@ -57,7 +57,8 @@ function formatarVenda(venda) {
     };
 }
 
-// GET /api/vendas — lista; filtros opcionais por usuário e status
+// GET /api/vendas e /api/admin/vendas — lista; filtros opcionais por usuário e
+// status; inclui cliente e itens (variante + produto) pra montar o painel
 async function listarVendas({ usuarioId, status } = {}) {
     const where = {};
     if (usuarioId) where.usuario_id = usuarioId;
@@ -65,7 +66,20 @@ async function listarVendas({ usuarioId, status } = {}) {
 
     const vendas = await Venda.findAll({
         where,
-        include: [{ model: Usuario, as: "usuario", attributes: ["id", "nome"] }],
+        include: [
+            { model: Usuario, as: "usuario", attributes: ["id", "nome"] },
+            {
+                model: ProdutoVenda,
+                as: "itens",
+                include: [
+                    {
+                        model: ProdutoVariante,
+                        as: "produto_variante",
+                        include: [{ model: Produto, as: "produto", attributes: ["id", "nome"] }],
+                    },
+                ],
+            },
+        ],
         order: [["created_at", "DESC"]],
     });
     return vendas.map(formatarVenda);
@@ -117,26 +131,9 @@ async function removerVenda(id) {
     return true;
 }
 
-// GET /api/vendas/minhas — histórico do usuário logado, com itens e detalhes da variante/produto
-async function listarVendasDoUsuario(usuarioId) {
-    const vendas = await Venda.findAll({
-        where: { usuario_id: usuarioId },
-        include: [
-            {
-                model: ProdutoVenda,
-                as: "itens",
-                include: [
-                    {
-                        model: ProdutoVariante,
-                        as: "produto_variante",
-                        include: [{ model: Produto, as: "produto", attributes: ["id", "nome"] }],
-                    },
-                ],
-            },
-        ],
-        order: [["created_at", "DESC"]],
-    });
-    return vendas.map(formatarVenda);
+// GET /api/vendas/minhas — histórico do usuário logado (mesmo shape do painel admin)
+function listarVendasDoUsuario(usuarioId) {
+    return listarVendas({ usuarioId });
 }
 
 // Erro de regra de negócio com status HTTP — o controller responde {error} e repassa o resto
@@ -214,15 +211,27 @@ async function registrarVenda({ usuarioId, itens, enderecoEntregaId }) {
     return buscarVenda(venda.id);
 }
 
-// POST /api/vendas/:id/comprovante — vincula a URL do comprovante à venda do próprio
-// usuário; null se a venda não existir ou não pertencer a ele
-async function vincularComprovante(id, usuarioId, url) {
-    const venda = await Venda.findOne({ where: { id, usuario_id: usuarioId } });
+// POST /api/admin/vendas/:id/comprovante — o ADMIN vincula a URL do comprovante
+// (recebido por WhatsApp) a qualquer venda; null se a venda não existir
+async function vincularComprovante(id, url) {
+    const venda = await Venda.findByPk(id);
     if (!venda) return null;
 
     venda.comprovante_url = url;
     await venda.save();
     return formatarVenda(venda);
+}
+
+// DELETE /api/admin/vendas/:id/comprovante — desvincula o comprovante da venda;
+// devolve { venda, urlAntiga } ou null se a venda não existir
+async function removerComprovante(id) {
+    const venda = await Venda.findByPk(id);
+    if (!venda) return null;
+
+    const urlAntiga = venda.comprovante_url;
+    venda.comprovante_url = null;
+    await venda.save();
+    return { venda: formatarVenda(venda), urlAntiga };
 }
 
 module.exports = {
@@ -234,5 +243,6 @@ module.exports = {
     listarVendasDoUsuario,
     registrarVenda,
     vincularComprovante,
+    removerComprovante,
     formatarVenda,
 };
