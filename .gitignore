@@ -6,3 +6,6 @@ node_modules/
 
 # Uploads de comprovantes
 uploads/
+
+# Mapeamento de tasks do Trello — só local, nunca versionado
+database/trello-tasks.md
