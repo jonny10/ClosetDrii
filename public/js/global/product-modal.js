@@ -1,7 +1,5 @@
 import { showSnackbar } from "/js/global/snackbar.js";
-// TODO (nova stack): integrar com o módulo de carrinho do back-end (Node/Sequelize).
-// O carrinho ainda não foi implementado no novo projeto — ver handleAddToCart abaixo.
-// import { adicionarAoCarrinho } from "<modulo-de-carrinho>";
+import { adicionarAoCarrinho } from "/js/cart.js";
 
 let currentProduct = null;
 let selectedColor = null;
@@ -241,10 +239,9 @@ function handleAddToCart() {
     imagem_url: varianteSelecionada.imagem_url || "/assets/img/logo.png",
   };
 
-  // TODO (nova stack): enviar `itemCarrinho` ao módulo de carrinho do back-end
-  // (ou persistir via API). Placeholder temporário até o carrinho existir:
-  console.log("Item para o carrinho:", itemCarrinho);
-  showSnackbar("Produto adicionado ao carrinho.", "success");
+  // Envia o item pro carrinho (localStorage, dedupe por variante em cart.js) —
+  // o snackbar de confirmação é exibido pelo próprio adicionarAoCarrinho
+  adicionarAoCarrinho(itemCarrinho);
 
   closeModal();
 }

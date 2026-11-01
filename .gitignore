@@ -3,3 +3,9 @@ node_modules/
 
 # Variáveis de ambiente / segredos
 .env
+
+# Uploads de comprovantes
+uploads/
+
+# Mapeamento de tasks do Trello — só local, nunca versionado
+database/trello-tasks.md

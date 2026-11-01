@@ -12,6 +12,7 @@ const Venda = sequelize.define(
             defaultValue: "pendente",
         },
         endereco_entrega_id: { type: DataTypes.INTEGER },
+        comprovante_url: { type: DataTypes.STRING(255) },
     },
     {
         tableName: "vendas",
