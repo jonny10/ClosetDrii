@@ -70,6 +70,42 @@
   color: var(--muted);
 }
 
+/* Comprovante de pagamento (anexado pelo admin) */
+.admin-comprovante-block {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.comprovante-link {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+.comprovante-upload-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.comprovante-upload-label:hover {
+  border-color: var(--primary);
+}
+
+.comprovante-upload-label input[type="file"] {
+  display: none;
+}
+
 @media (max-width: 600px) {
   .order-card-footer.admin-footer {
     flex-direction: column;

@@ -67,8 +67,8 @@ async function listarMinhas(req, res, next) {
     }
 }
 
-// POST /api/vendas/:id/comprovante — vincula o comprovante enviado pelo multer à
-// venda do próprio usuário (404 tanto pra inexistente quanto pra venda de terceiro)
+// POST /api/admin/vendas/:id/comprovante — o admin anexa o comprovante recebido por
+// WhatsApp (o upload é feito pelo multer antes de chegar aqui)
 async function vincularComprovante(req, res, next) {
     try {
         const vendaId = Number.parseInt(req.params.id, 10);
@@ -78,14 +78,48 @@ async function vincularComprovante(req, res, next) {
             return res.status(404).json({ error: "Venda não encontrada" });
         }
 
-        const venda = await vendaService.vincularComprovante(
-            vendaId,
-            req.session.user.id,
-            req.comprovanteUrl
-        );
+        const venda = await vendaService.vincularComprovante(vendaId, req.comprovanteUrl);
 
         if (!venda) {
             fs.unlink(req.file.path, () => {});
+            return res.status(404).json({ error: "Venda não encontrada" });
+        }
+
+        return res.json(venda);
+    } catch (err) {
+        next(err);
+    }
+}
+
+// GET /api/admin/vendas — painel do admin: todas as vendas com cliente e itens
+async function listarTodas(req, res, next) {
+    try {
+        const vendas = await vendaService.listarVendas({});
+        return res.json(vendas);
+    } catch (err) {
+        next(err);
+    }
+}
+
+const STATUS_PERMITIDOS = ["pendente", "pago", "enviado", "cancelado"];
+
+// PATCH /api/admin/vendas/:id/status — muda o status da venda (admin)
+async function atualizarStatus(req, res, next) {
+    try {
+        const vendaId = Number.parseInt(req.params.id, 10);
+        const { status } = req.body || {};
+
+        if (!STATUS_PERMITIDOS.includes(status)) {
+            return res.status(400).json({ error: "Status inválido" });
+        }
+
+        if (!Number.isInteger(vendaId) || vendaId <= 0) {
+            return res.status(404).json({ error: "Venda não encontrada" });
+        }
+
+        const venda = await vendaService.atualizarVenda(vendaId, { status });
+
+        if (!venda) {
             return res.status(404).json({ error: "Venda não encontrada" });
         }
 
@@ -99,4 +133,6 @@ module.exports = {
     fecharPedido,
     listarMinhas,
     vincularComprovante,
+    listarTodas,
+    atualizarStatus,
 };
