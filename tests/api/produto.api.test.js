@@ -224,6 +224,20 @@ describe("Admin: CRUD /api/admin/produtos", () => {
         expect(resDuplicada.body).toEqual({ error: "Variantes duplicadas (mesma cor e tamanho)" });
     });
 
+    it("400 com variante de tamanho fora do catálogo", async () => {
+        const agente = await loginAdmin();
+        const res = await agente.post("/api/admin/produtos").send({
+            nome: "X",
+            descricao: "Y",
+            preco: 10,
+            categoria_id: 1,
+            variantes: [{ cor: "Rosa", tamanho: "XXL" }],
+        });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toEqual({ error: "Tamanho inválido" });
+    });
+
     it("200 atualiza produto parcialmente", async () => {
         const agente = await loginAdmin();
         const res = await agente.patch("/api/admin/produtos/18").send({ preco: 59.9 });
@@ -361,6 +375,24 @@ describe("Admin: CRUD de variantes", () => {
 
         expect(res.status).toBe(409);
         expect(res.body).toEqual({ error: "Variante já existe para este produto" });
+    });
+
+    it("400 cria variante com tamanho fora do catálogo", async () => {
+        const agente = await loginAdmin();
+        const res = await agente
+            .post("/api/admin/produtos/18/variantes")
+            .send({ cor: "Verde", tamanho: "XXL" });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toEqual({ error: "Tamanho inválido" });
+    });
+
+    it("400 atualiza variante para tamanho inexistente", async () => {
+        const agente = await loginAdmin();
+        const res = await agente.patch("/api/admin/variantes/29").send({ tamanho: "XXL" });
+
+        expect(res.status).toBe(400);
+        expect(res.body).toEqual({ error: "Tamanho inválido" });
     });
 
     it("200 atualiza variante", async () => {

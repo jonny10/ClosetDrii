@@ -1,9 +1,9 @@
-const { Produto, Categoria, ProdutoVariante } = require("../../models");
+const { Produto, Categoria, ProdutoVariante, Tamanho } = require("../../models");
 
 // Páginas falam direto com os models; a camada de services fica para a API.
 async function renderProdutos(req, res, next) {
     try {
-        const [produtos, categorias] = await Promise.all([
+        const [produtos, categorias, tamanhos] = await Promise.all([
             Produto.findAll({
                 include: [
                     { model: Categoria, as: "categoria", attributes: ["id", "nome"] },
@@ -12,6 +12,7 @@ async function renderProdutos(req, res, next) {
                 order: [["created_at", "DESC"]],
             }),
             Categoria.findAll({ order: [["nome", "ASC"]], attributes: ["id", "nome"] }),
+            Tamanho.findAll({ order: [["ordem", "ASC"]], attributes: ["id", "nome"] }),
         ]);
 
         // converte as instâncias em objetos simples e formata o que a view precisa.
@@ -44,6 +45,7 @@ async function renderProdutos(req, res, next) {
                 nome: c.nome,
                 nome_lower: c.nome.toLowerCase(),
             })),
+            tamanhos: tamanhos.map((t) => ({ id: t.id, nome: t.nome })),
         });
     } catch (err) {
         next(err); // cai no handler de erro global do app.js

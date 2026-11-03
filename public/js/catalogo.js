@@ -20,6 +20,8 @@ const arquivosPendentes = {}; // { [rowId]: File } — preview visual apenas
 document.addEventListener("DOMContentLoaded", () => {
   restaurarSnackbarAposReload();
   configurarOuvintesEventos();
+  configurarOuvintesCategorias();
+  configurarOuvintesTamanhos();
   filtrarTabela();
 });
 
@@ -66,6 +68,26 @@ function filtrarTabela() {
   }
 }
 
+// --- Tamanhos (vêm da tabela `tamanhos` — nada de lista hardcoded) ---
+let tamanhosCache = null;
+
+async function obterTamanhos() {
+  if (tamanhosCache) return tamanhosCache;
+  try {
+    const resp = await fetch("/api/tamanhos");
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    tamanhosCache = await resp.json(); // [{ id, nome, ordem }]
+  } catch (err) {
+    console.error("Erro ao carregar tamanhos:", err);
+    tamanhosCache = [];
+  }
+  return tamanhosCache;
+}
+
+function tamanhoPadrao() {
+  return tamanhosCache?.[0]?.nome || "M";
+}
+
 function configurarOuvintesEventos() {
   const modal = document.getElementById("product-crud-modal");
   const deleteModal = document.getElementById("delete-confirm-modal");
@@ -85,14 +107,15 @@ function configurarOuvintesEventos() {
     Object.keys(arquivosPendentes).forEach((k) => delete arquivosPendentes[k]);
   };
 
-  btnOpenCreate?.addEventListener("click", () => {
+  btnOpenCreate?.addEventListener("click", async () => {
+    await obterTamanhos();
     form.reset();
     document.getElementById("form-product-id").value = "";
     document.getElementById("modal-title-context").textContent = "Cadastrar Novo Look";
 
     idsVariantesOriginais = [];
     variantesFormState = [
-      { id: `new_${Date.now()}`, tamanho: "M", cor: "", estoque: 1, imagem_url: "" },
+      { id: `new_${Date.now()}`, tamanho: tamanhoPadrao(), cor: "", estoque: 1, imagem_url: "" },
     ];
     renderizarLinhasVariantesModal();
     modal.style.display = "flex";
@@ -101,10 +124,11 @@ function configurarOuvintesEventos() {
   document.getElementById("btn-close-modal")?.addEventListener("click", fecharModal);
   document.getElementById("btn-cancel-form")?.addEventListener("click", fecharModal);
 
-  btnAddVariantRow?.addEventListener("click", () => {
+  btnAddVariantRow?.addEventListener("click", async () => {
+    await obterTamanhos();
     variantesFormState.push({
       id: `new_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-      tamanho: "M",
+      tamanho: tamanhoPadrao(),
       cor: "",
       estoque: 1,
       imagem_url: "",
@@ -184,17 +208,23 @@ function configurarOuvintesEventos() {
 // Busca o produto na API e abre o modal preenchido (fetch on-click, padrão da home)
 async function abrirEdicao(idProduto) {
   try {
-    const resp = await fetch(`/api/produtos/${idProduto}`);
-    if (resp.status === 401) {
-      window.location.href = "/login";
-      return;
-    }
-    if (!resp.ok) {
+    const [produto] = await Promise.all([
+      (async () => {
+        const resp = await fetch(`/api/produtos/${idProduto}`);
+        if (resp.status === 401) {
+          window.location.href = "/login";
+          return null;
+        }
+        if (!resp.ok) return null;
+        return resp.json();
+      })(),
+      obterTamanhos(),
+    ]);
+
+    if (!produto) {
       showSnackbar("Erro ao carregar o produto.", "error");
       return;
     }
-
-    const produto = await resp.json();
 
     document.getElementById("form-product-id").value = String(produto.id);
     document.getElementById("form-nome").value = produto.nome;
@@ -233,13 +263,17 @@ function renderizarLinhasVariantesModal() {
 
     const previewSrc = variante.imagem_url || "";
 
+    // opções do select vêm da tabela `tamanhos` (cache carregada na abertura do modal)
+    const opcoesTamanho = (tamanhosCache || [])
+      .map(
+        (t) =>
+          `<option value="${t.nome}" ${variante.tamanho === t.nome ? "selected" : ""}>${t.nome}</option>`,
+      )
+      .join("");
+
     row.innerHTML = `
       <select data-row-id="${variante.id}" data-field="tamanho" required>
-        <option value="P" ${variante.tamanho === "P" ? "selected" : ""}>P</option>
-        <option value="M" ${variante.tamanho === "M" ? "selected" : ""}>M</option>
-        <option value="G" ${variante.tamanho === "G" ? "selected" : ""}>G</option>
-        <option value="GG" ${variante.tamanho === "GG" ? "selected" : ""}>GG</option>
-        <option value="U" ${variante.tamanho === "U" ? "selected" : ""}>U</option>
+        ${opcoesTamanho}
       </select>
       <input type="text" data-row-id="${variante.id}" data-field="cor" value="${variante.cor}" required placeholder="Ex: Rosa Fúcsia" />
       <input type="number" data-row-id="${variante.id}" data-field="estoque" value="${variante.estoque}" min="0" required placeholder="10" />
@@ -421,6 +455,246 @@ async function executarRemocaoProduto(id) {
     }
 
     snackbarAposReload("Produto e suas variantes removidos da base.");
+  } catch (err) {
+    console.error(err);
+    showSnackbar("Erro ao conectar com o servidor.", "error");
+  }
+}
+
+// --- Modais de categorias e tamanhos (CRUD via /api/admin/*) ---
+//
+// Os dois modais compartilham o mesmo comportamento de rodapé:
+// em modo criação → "Novo" + "Salvar X"
+// em modo edição  → "Cancelar" (sai da edição) + "Editar" (salva a alteração)
+// Os rótulos ficam nos data-label-criacao / data-label-edicao dos botões.
+
+function alternarModoEdicao(form, emEdicao) {
+  form.querySelectorAll("[data-label-criacao], [data-label-edicao]").forEach((btn) => {
+    const rotulo = emEdicao ? btn.dataset.labelEdicao : btn.dataset.labelCriacao;
+    if (rotulo) btn.textContent = rotulo;
+  });
+
+  const titulo = form.closest(".modal-card")?.querySelector("[data-titulo-criacao]");
+  if (titulo) {
+    titulo.textContent = emEdicao
+      ? titulo.dataset.tituloEdicao
+      : titulo.dataset.tituloCriacao;
+  }
+}
+
+function configurarOuvintesCategorias() {
+  const modal = document.getElementById("categorias-modal");
+  const form = document.getElementById("categoria-form");
+  if (!modal || !form) return;
+
+  document.getElementById("btn-open-categorias-modal")?.addEventListener("click", () => {
+    resetarFormCategoria();
+    modal.style.display = "flex";
+  });
+
+  document
+    .getElementById("btn-close-categorias-modal")
+    ?.addEventListener("click", () => (modal.style.display = "none"));
+
+  document.getElementById("btn-reset-categoria")?.addEventListener("click", () => {
+    // em modo edição o botão vira "Cancelar": volta ao formulário de criação
+    resetarFormCategoria();
+  });
+
+  // delegação: editar preenche o form, excluir manda o DELETE
+  document.querySelector(".categorias-list")?.addEventListener("click", (e) => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+
+    const item = btn.closest(".categoria-item");
+    const id = Number(btn.dataset.id);
+
+    if (btn.classList.contains("btn-categoria-edit") && item) {
+      document.getElementById("categoria-id").value = String(id);
+      document.getElementById("categoria-nome").value = item.dataset.nome;
+      document.getElementById("categoria-descricao").value = item.dataset.descricao;
+      alternarModoEdicao(form, true);
+      document.getElementById("categoria-nome").focus();
+    } else if (btn.classList.contains("btn-categoria-delete")) {
+      removerCategoria(id);
+    }
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const idInput = document.getElementById("categoria-id").value;
+    const payload = {
+      nome: document.getElementById("categoria-nome").value.trim(),
+      descricao: document.getElementById("categoria-descricao").value.trim(),
+    };
+
+    try {
+      const resp = await fetch(
+        idInput ? `/api/admin/categorias/${idInput}` : "/api/admin/categorias",
+        {
+          method: idInput ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        },
+      );
+
+      if (resp.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
+
+      const data = await resp.json().catch(() => ({}));
+
+      if (!resp.ok) {
+        showSnackbar(data.error || "Falha ao salvar categoria.", "error");
+        return;
+      }
+
+      snackbarAposReload(
+        idInput ? "Categoria atualizada com sucesso!" : "Categoria criada com sucesso!",
+      );
+    } catch (err) {
+      console.error(err);
+      showSnackbar("Erro ao conectar com o servidor.", "error");
+    }
+  });
+}
+
+function resetarFormCategoria() {
+  document.getElementById("categoria-form").reset();
+  document.getElementById("categoria-id").value = "";
+  const form = document.getElementById("categoria-form");
+  if (form) alternarModoEdicao(form, false);
+}
+
+// --- Modal de tamanhos (CRUD via /api/admin/tamanhos) ---
+
+function configurarOuvintesTamanhos() {
+  const modal = document.getElementById("tamanhos-modal");
+  const form = document.getElementById("tamanho-form");
+  if (!modal || !form) return;
+
+  document.getElementById("btn-open-tamanhos-modal")?.addEventListener("click", () => {
+    resetarFormTamanho();
+    modal.style.display = "flex";
+  });
+
+  document
+    .getElementById("btn-close-tamanhos-modal")
+    ?.addEventListener("click", () => (modal.style.display = "none"));
+
+  document.getElementById("btn-reset-tamanho")?.addEventListener("click", () => {
+    // em modo edição o botão vira "Cancelar": volta ao formulário de criação
+    resetarFormTamanho();
+  });
+
+  document.querySelector(".tamanhos-list")?.addEventListener("click", (e) => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+
+    const item = btn.closest(".tamanho-item");
+    const id = Number(btn.dataset.id);
+
+    if (btn.classList.contains("btn-tamanho-edit") && item) {
+      document.getElementById("tamanho-id").value = String(id);
+      document.getElementById("tamanho-nome").value = item.dataset.nome;
+      document.getElementById("tamanho-ordem").value = item.dataset.ordem;
+      alternarModoEdicao(form, true);
+      document.getElementById("tamanho-nome").focus();
+    } else if (btn.classList.contains("btn-tamanho-delete")) {
+      removerTamanho(id);
+    }
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const idInput = document.getElementById("tamanho-id").value;
+    const payload = {
+      nome: document.getElementById("tamanho-nome").value.trim(),
+      ordem: Number(document.getElementById("tamanho-ordem").value),
+    };
+
+    try {
+      const resp = await fetch(
+        idInput ? `/api/admin/tamanhos/${idInput}` : "/api/admin/tamanhos",
+        {
+          method: idInput ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        },
+      );
+
+      if (resp.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
+
+      const data = await resp.json().catch(() => ({}));
+
+      if (!resp.ok) {
+        showSnackbar(data.error || "Falha ao salvar tamanho.", "error");
+        return;
+      }
+
+      snackbarAposReload(
+        idInput ? "Tamanho atualizado com sucesso!" : "Tamanho criado com sucesso!",
+      );
+    } catch (err) {
+      console.error(err);
+      showSnackbar("Erro ao conectar com o servidor.", "error");
+    }
+  });
+}
+
+function resetarFormTamanho() {
+  document.getElementById("tamanho-form").reset();
+  document.getElementById("tamanho-id").value = "";
+  const form = document.getElementById("tamanho-form");
+  if (form) alternarModoEdicao(form, false);
+}
+
+async function removerTamanho(id) {
+  try {
+    const resp = await fetch(`/api/admin/tamanhos/${id}`, { method: "DELETE" });
+
+    if (resp.status === 401) {
+      window.location.href = "/login";
+      return;
+    }
+
+    const data = await resp.json().catch(() => ({}));
+
+    if (!resp.ok) {
+      showSnackbar(data.error || "Falha ao excluir tamanho.", "error");
+      return;
+    }
+
+    snackbarAposReload("Tamanho removido com sucesso!");
+  } catch (err) {
+    console.error(err);
+    showSnackbar("Erro ao conectar com o servidor.", "error");
+  }
+}
+
+async function removerCategoria(id) {
+  try {
+    const resp = await fetch(`/api/admin/categorias/${id}`, { method: "DELETE" });
+
+    if (resp.status === 401) {
+      window.location.href = "/login";
+      return;
+    }
+
+    const data = await resp.json().catch(() => ({}));
+
+    if (!resp.ok) {
+      showSnackbar(data.error || "Falha ao excluir categoria.", "error");
+      return;
+    }
+
+    snackbarAposReload("Categoria removida com sucesso!");
   } catch (err) {
     console.error(err);
     showSnackbar("Erro ao conectar com o servidor.", "error");

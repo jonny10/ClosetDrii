@@ -1,5 +1,5 @@
 const { Op } = require("sequelize");
-const { ProdutoVariante, ProdutoVenda } = require("../models");
+const { ProdutoVariante, ProdutoVenda, Tamanho } = require("../models");
 
 // Campos aceitos em criar/atualizar — whitelist evita mass-assignment
 const CAMPOS = ["produto_id", "cor", "tamanho", "imagem_url", "estoque"];
@@ -45,8 +45,16 @@ async function buscarVariante(id) {
     return variante ? formatarVariante(variante) : null;
 }
 
+// Valida se a sigla existe na tabela `tamanhos` — nada de tamanho fora do catálogo
+async function validarTamanho(tamanho) {
+    const existe = await Tamanho.findOne({ where: { nome: tamanho } });
+    if (!existe) throw criarErro("Tamanho inválido", 400);
+}
+
 // POST /api/admin/produtos/:id/variantes — 409 se cor+tamanho já existirem no produto
 async function criarVariante(dados) {
+    await validarTamanho(dados.tamanho);
+
     const existente = await ProdutoVariante.findOne({
         where: { produto_id: dados.produto_id, cor: dados.cor, tamanho: dados.tamanho },
     });
@@ -63,6 +71,10 @@ async function atualizarVariante(id, dados) {
     if (!variante) return null;
 
     const patch = montarDados(dados);
+
+    if (patch.tamanho !== undefined) {
+        await validarTamanho(patch.tamanho);
+    }
 
     if (patch.cor !== undefined || patch.tamanho !== undefined) {
         const conflito = await ProdutoVariante.findOne({

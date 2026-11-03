@@ -167,7 +167,20 @@ INSERT INTO `produto_vendas` (`produto_variante_id`, `venda_id`, `quantidade`, `
 (22, 13, 2, 99.80);
 
 -- ============================================================
--- 8. CONTATO (5 linhas)
+-- 8. TAMANHOS (8 linhas)
+-- ============================================================
+INSERT INTO `tamanhos` (`nome`, `ordem`) VALUES
+('P', 1),
+('M', 2),
+('G', 3),
+('GG', 4),
+('U', 5),
+('36', 6),
+('38', 7),
+('40', 8);
+
+-- ============================================================
+-- 9. CONTATO (5 linhas)
 -- ============================================================
 INSERT INTO `contatos` (`nome`, `email`, `assunto`, `mensagem`) VALUES
 ('Leticia Moura', 'leticia.moura@email.com', 'Parceria', 'Olá, gostaria de discutir uma possível parceria comercial com a ClosetDrii.'),
@@ -177,7 +190,7 @@ INSERT INTO `contatos` (`nome`, `email`, `assunto`, `mensagem`) VALUES
 ('Renata Figueiredo', 'renata@email.com', 'Elogio', 'Amei a qualidade do vestido floral midi! Com certeza voltarei a comprar.');
 
 -- ============================================================
--- 9. AVALIACAO (12 linhas)
+-- 10. AVALIACAO (12 linhas)
 -- ============================================================
 INSERT INTO `avaliacoes` (`usuario_id`, `produto_id`, `nota`, `comentario`) VALUES
 (4, 1, 5, 'Vestido lindo, tecido de ótima qualidade e caimento perfeito!'),

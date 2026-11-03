@@ -1,6 +1,6 @@
 const { Op } = require("sequelize");
 const sequelize = require("../config/database");
-const { Produto, Categoria, ProdutoVariante, ProdutoVenda, Avaliacao } = require("../models");
+const { Produto, Categoria, ProdutoVariante, ProdutoVenda, Avaliacao, Tamanho } = require("../models");
 
 const INCLUDE_CATEGORIA = {
     model: Categoria,
@@ -93,6 +93,13 @@ async function listarVariantes(produtoId) {
 async function criarProdutoComVariantes(dados, variantes = []) {
     const categoria = await Categoria.findByPk(dados.categoria_id);
     if (!categoria) throw criarErro("Categoria não encontrada", 400);
+
+    // nenhum tamanho pode ficar fora da tabela `tamanhos`
+    if (variantes.length > 0) {
+        const siglas = [...new Set(variantes.map((v) => v.tamanho))];
+        const existentes = await Tamanho.findAll({ where: { nome: siglas }, attributes: ["nome"] });
+        if (existentes.length !== siglas.length) throw criarErro("Tamanho inválido", 400);
+    }
 
     const produto = await sequelize.transaction(async (t) => {
         const novo = await Produto.create(dados, { transaction: t });

@@ -7,10 +7,64 @@
         plataforma.
       </p>
     </div>
-    <button id="btn-open-create-modal" class="btn-primary">
-      <i class="fas fa-plus"></i> Novo Produto
-    </button>
+    <div class="admin-header-actions-buttons">
+      <button id="btn-open-categorias-modal" class="btn-secondary">
+        <i class="fas fa-tags"></i> Categorias
+      </button>
+      <button id="btn-open-tamanhos-modal" class="btn-secondary">
+        <i class="fas fa-ruler-combined"></i> Tamanhos
+      </button>
+      <button id="btn-open-create-modal" class="btn-primary">
+        <i class="fas fa-plus"></i> Novo Produto
+      </button>
+    </div>
   </header>
+
+  <section class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-icon icon-looks">
+        <i class="fas fa-tshirt"></i>
+      </div>
+      <div class="kpi-details">
+        <h3>Looks Cadastrados</h3>
+        <p>{{kpis.totalProdutos}}</p>
+        <span>Produtos distintos no catálogo</span>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon icon-variantes">
+        <i class="fas fa-tags"></i>
+      </div>
+      <div class="kpi-details">
+        <h3>Variações de Grade</h3>
+        <p>{{kpis.totalVariantes}}</p>
+        <span>Combinações cor/tamanho</span>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon icon-pecas">
+        <i class="fas fa-boxes"></i>
+      </div>
+      <div class="kpi-details">
+        <h3>Peças em Estoque</h3>
+        <p>{{kpis.totalPecas}}</p>
+        <span>Volume físico disponível</span>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon icon-preco">
+        <i class="fas fa-chart-line"></i>
+      </div>
+      <div class="kpi-details">
+        <h3>Preço Médio</h3>
+        <p>R$ {{kpis.precoMedio}}</p>
+        <span>Média do catálogo</span>
+      </div>
+    </div>
+  </section>
 
   <section class="admin-search-wrapper">
     <div class="crud-search-box">
@@ -63,6 +117,64 @@
         {{/each}}
       </tbody>
     </table>
+  </section>
+
+  <section class="analytics-main-section stock-sections">
+    <div class="analytics-card">
+      <header class="analytics-card-header">
+        <h2><i class="fas fa-layer-group"></i> Estoque por Categoria</h2>
+        <p>Distribuição de looks e peças físicas por categoria.</p>
+      </header>
+
+      <table class="ranking-table">
+        <thead>
+          <tr>
+            <th>Categoria</th>
+            <th style="text-align: center">Looks</th>
+            <th style="text-align: right">Peças em Estoque</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each estoquePorCategoria}}
+          <tr>
+            <td>{{nome}}</td>
+            <td style="text-align: center">{{looks}}</td>
+            <td style="text-align: right"><strong>{{pecas}}</strong></td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="analytics-card">
+      <header class="analytics-card-header">
+        <h2><i class="fas fa-exclamation-triangle"></i> Alertas de Reposição</h2>
+        <p>Variantes com 3 peças ou menos em estoque.</p>
+      </header>
+
+      {{#if alertas.length}}
+      <table class="ranking-table">
+        <thead>
+          <tr>
+            <th>Look</th>
+            <th>Variação</th>
+            <th style="text-align: right">Estoque</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each alertas}}
+          <tr>
+            <td>{{produto}}</td>
+            <td>{{tamanho}}-{{cor}}</td>
+            <td style="text-align: right"><strong>{{estoque}}</strong></td>
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+      {{else}}
+      <p class="no-variants-text">Nenhuma variante em estado crítico. 🎉</p>
+      {{/if}}
+    </div>
   </section>
 </main>
 
@@ -159,6 +271,186 @@
         </button>
       </footer>
     </form>
+  </div>
+</div>
+
+<div id="categorias-modal" class="admin-modal" style="display: none">
+  <div class="modal-card">
+    <header class="modal-header">
+      <h2
+        id="categorias-modal-titulo"
+        data-titulo-criacao="Gerenciar Categorias"
+        data-titulo-edicao="Editando Categoria"
+      >
+        Gerenciar Categorias
+      </h2>
+      <button id="btn-close-categorias-modal" class="close-x-btn">&times;</button>
+    </header>
+
+    <form id="categoria-form">
+      <input type="hidden" id="categoria-id" />
+
+      <div class="form-row-double">
+        <div class="form-group">
+          <label for="categoria-nome">Nome</label>
+          <input type="text" id="categoria-nome" required placeholder="Ex: Bolsas" />
+        </div>
+
+        <div class="form-group">
+          <label for="categoria-descricao">Descrição</label>
+          <input
+            type="text"
+            id="categoria-descricao"
+            required
+            placeholder="Ex: Bolsas e carteiras"
+          />
+        </div>
+      </div>
+
+      <div class="form-actions-footer">
+        <button
+          type="button"
+          id="btn-reset-categoria"
+          class="btn-secondary"
+          data-label-criacao="Novo"
+          data-label-edicao="Cancelar"
+        >
+          Novo
+        </button>
+        <button
+          type="submit"
+          id="btn-salvar-categoria"
+          class="btn-primary"
+          data-label-criacao="Salvar Categoria"
+          data-label-edicao="Editar"
+        >
+          Salvar Categoria
+        </button>
+      </div>
+    </form>
+
+    <div class="categorias-list">
+      {{#each categorias}}
+      <div
+        class="categoria-item"
+        data-id="{{id}}"
+        data-nome="{{nome}}"
+        data-descricao="{{descricao}}"
+      >
+        <div>
+          <strong>{{nome}}</strong>
+          <span>{{looks}} look(s)</span>
+        </div>
+        <div class="action-buttons-wrapper">
+          <button
+            class="btn-action-edit btn-categoria-edit"
+            data-id="{{id}}"
+            title="Editar Categoria"
+          >
+            <i class="fas fa-edit"></i>
+          </button>
+          <button
+            class="btn-action-delete btn-categoria-delete"
+            data-id="{{id}}"
+            title="Excluir Categoria"
+          >
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+      {{/each}}
+    </div>
+  </div>
+</div>
+
+<div id="tamanhos-modal" class="admin-modal" style="display: none">
+  <div class="modal-card">
+    <header class="modal-header">
+      <h2
+        id="tamanhos-modal-titulo"
+        data-titulo-criacao="Gerenciar Tamanhos"
+        data-titulo-edicao="Editando Tamanho"
+      >
+        Gerenciar Tamanhos
+      </h2>
+      <button id="btn-close-tamanhos-modal" class="close-x-btn">&times;</button>
+    </header>
+
+    <form id="tamanho-form">
+      <input type="hidden" id="tamanho-id" />
+
+      <div class="form-row-double">
+        <div class="form-group">
+          <label for="tamanho-nome">Sigla</label>
+          <input type="text" id="tamanho-nome" required placeholder="Ex: 42" />
+        </div>
+
+        <div class="form-group">
+          <label for="tamanho-ordem">Ordem de Exibição</label>
+          <input
+            type="number"
+            id="tamanho-ordem"
+            min="0"
+            step="1"
+            required
+            placeholder="Ex: 9"
+          />
+        </div>
+      </div>
+
+      <div class="form-actions-footer">
+        <button
+          type="button"
+          id="btn-reset-tamanho"
+          class="btn-secondary"
+          data-label-criacao="Novo"
+          data-label-edicao="Cancelar"
+        >
+          Novo
+        </button>
+        <button
+          type="submit"
+          id="btn-salvar-tamanho"
+          class="btn-primary"
+          data-label-criacao="Salvar Tamanho"
+          data-label-edicao="Editar"
+        >
+          Salvar Tamanho
+        </button>
+      </div>
+    </form>
+
+    <div class="tamanhos-list">
+      {{#each tamanhos}}
+      <div
+        class="tamanho-item"
+        data-id="{{id}}"
+        data-nome="{{nome}}"
+        data-ordem="{{ordem}}"
+      >
+        <div>
+          <strong>{{nome}}</strong>
+          <span>{{variantes}} variante(s)</span>
+        </div>
+        <div class="action-buttons-wrapper">
+          <button
+            class="btn-action-edit btn-tamanho-edit"
+            data-id="{{id}}"
+            title="Editar Tamanho"
+          >
+            <i class="fas fa-edit"></i>
+          </button>
+          <button
+            class="btn-action-delete btn-tamanho-delete"
+            data-id="{{id}}"
+            title="Excluir Tamanho"
+          >
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+      {{/each}}
+    </div>
   </div>
 </div>
 

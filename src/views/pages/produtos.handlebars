@@ -56,11 +56,9 @@
         <div class="filter-box">
         <h3>Tamanho</h3>
         <div class="size-chips">
-            <button class="size-chip">U</button>
-            <button class="size-chip">P</button>
-            <button class="size-chip">M</button>
-            <button class="size-chip">G</button>
-            <button class="size-chip">GG</button>
+            {{#each tamanhos}}
+            <button class="size-chip">{{nome}}</button>
+            {{/each}}
         </div>
         </div>
     </aside>

@@ -10,8 +10,9 @@ const ProdutoVenda = require("./produto_venda.model");
 const LogVenda = require("./log_venda.model");
 const Avaliacao = require("./avaliacao.model");
 const Contato = require("./contato.model");
+const Tamanho = require("./tamanho.model");
 
-const models = { Usuario, Endereco, Categoria, Produto, ProdutoVariante, Venda, ProdutoVenda, LogVenda, Avaliacao, Contato };
+const models = { Usuario, Endereco, Categoria, Produto, ProdutoVariante, Venda, ProdutoVenda, LogVenda, Avaliacao, Contato, Tamanho };
 
 Object.values(models).forEach((model) => {
     if (typeof model.associate === "function") {

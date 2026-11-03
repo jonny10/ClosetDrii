@@ -113,6 +113,16 @@ CREATE TABLE IF NOT EXISTS `produto_vendas` (
         REFERENCES `vendas` (`id`)
 ) COMMENT 'Itens de produto incluídos em cada venda';
 
+CREATE TABLE IF NOT EXISTS `tamanhos` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `nome` VARCHAR(10) NOT NULL COMMENT 'Sigla do tamanho (P, M, G, 36, 38...)',
+    `ordem` INT NOT NULL DEFAULT 0 COMMENT 'Ordem de exibição no catálogo',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_tamanhos_nome` (`nome`)
+) COMMENT 'Tamanhos disponíveis no catálogo';
+
 CREATE TABLE IF NOT EXISTS `contatos` (
     `id` INT NOT NULL AUTO_INCREMENT,
     `nome` VARCHAR(255) NOT NULL COMMENT 'Nome do contato',
