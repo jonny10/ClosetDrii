@@ -51,7 +51,7 @@ async function removerTamanho(id) {
     const tamanho = await Tamanho.findByPk(id);
     if (!tamanho) return null;
 
-    const emUso = await ProdutoVariante.count({ where: { tamanho: tamanho.nome } });
+    const emUso = await ProdutoVariante.count({ where: { tamanho_id: tamanho.id } });
     if (emUso > 0) throw criarErro("Tamanho em uso por variantes", 409);
 
     await tamanho.destroy();

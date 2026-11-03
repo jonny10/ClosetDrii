@@ -12,7 +12,8 @@ async function renderCatalogo(req, res, next) {
                     {
                         model: ProdutoVariante,
                         as: "variantes",
-                        attributes: ["id", "cor", "tamanho", "estoque", "imagem_url"],
+                        attributes: ["id", "cor", "tamanho_id", "estoque", "imagem_url"],
+                        include: [{ model: Tamanho, as: "tamanho", attributes: ["id", "nome"] }],
                     },
                 ],
                 order: [["created_at", "DESC"]],
@@ -35,7 +36,7 @@ async function renderCatalogo(req, res, next) {
             variantes: (p.variantes || []).map((v) => ({
                 id: v.id,
                 cor: v.cor,
-                tamanho: v.tamanho,
+                tamanho: v.tamanho?.nome ?? null,
                 estoque: v.estoque,
                 imagem_url: v.imagem_url,
             })),

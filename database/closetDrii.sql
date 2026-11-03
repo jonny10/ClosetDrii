@@ -61,21 +61,34 @@ CREATE TABLE IF NOT EXISTS `produtos` (
         REFERENCES `categorias` (`id`)
 ) COMMENT 'Produtos disponíveis na loja';
 
+CREATE TABLE IF NOT EXISTS `tamanhos` (
+    `id` INT NOT NULL AUTO_INCREMENT,
+    `nome` VARCHAR(10) NOT NULL COMMENT 'Sigla do tamanho (P, M, G, 36, 38...)',
+    `ordem` INT NOT NULL DEFAULT 0 COMMENT 'Ordem de exibição no catálogo',
+    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_tamanhos_nome` (`nome`)
+) COMMENT 'Tamanhos disponíveis no catálogo';
+
 CREATE TABLE IF NOT EXISTS `produto_variantes` (
     `id` INT NOT NULL AUTO_INCREMENT,
     `produto_id` INT NOT NULL COMMENT 'FK para produto.id - variante do produto',
     `cor` VARCHAR(50) NOT NULL COMMENT 'Cor variante do produto',
-    `tamanho` VARCHAR(10) NOT NULL COMMENT 'Tamanho variante do produto',
+    `tamanho_id` INT NOT NULL COMMENT 'FK para tamanhos.id - tamanho da variante',
     `imagem_url` VARCHAR(255) COMMENT 'URL da imagem da variante',
     `estoque` INT NOT NULL DEFAULT 0 COMMENT 'Estoque da variante',
     `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    UNIQUE (`produto_id`, `cor`, `tamanho`),
+    UNIQUE (`produto_id`, `cor`, `tamanho_id`),
     CONSTRAINT `fk_produto_variante`
         FOREIGN KEY (`produto_id`)
         REFERENCES `produtos` (`id`)
-        ON DELETE CASCADE
+        ON DELETE CASCADE,
+    CONSTRAINT `fk_variante_tamanho`
+        FOREIGN KEY (`tamanho_id`)
+        REFERENCES `tamanhos` (`id`)
 ) COMMENT 'Variantes de cor e tamanho de cada produto';
 
 CREATE TABLE IF NOT EXISTS `vendas` (
@@ -112,16 +125,6 @@ CREATE TABLE IF NOT EXISTS `produto_vendas` (
         FOREIGN KEY (`venda_id`)
         REFERENCES `vendas` (`id`)
 ) COMMENT 'Itens de produto incluídos em cada venda';
-
-CREATE TABLE IF NOT EXISTS `tamanhos` (
-    `id` INT NOT NULL AUTO_INCREMENT,
-    `nome` VARCHAR(10) NOT NULL COMMENT 'Sigla do tamanho (P, M, G, 36, 38...)',
-    `ordem` INT NOT NULL DEFAULT 0 COMMENT 'Ordem de exibição no catálogo',
-    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
-    `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uq_tamanhos_nome` (`nome`)
-) COMMENT 'Tamanhos disponíveis no catálogo';
 
 CREATE TABLE IF NOT EXISTS `contatos` (
     `id` INT NOT NULL AUTO_INCREMENT,

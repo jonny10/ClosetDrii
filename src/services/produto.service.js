@@ -8,10 +8,17 @@ const INCLUDE_CATEGORIA = {
     attributes: ["id", "nome"],
 };
 
+const INCLUDE_TAMANHO = {
+    model: Tamanho,
+    as: "tamanho",
+    attributes: ["id", "nome"],
+};
+
 const INCLUDE_VARIANTES = {
     model: ProdutoVariante,
     as: "variantes",
-    attributes: ["id", "cor", "tamanho", "estoque", "imagem_url"],
+    attributes: ["id", "cor", "tamanho_id", "estoque", "imagem_url"],
+    include: [INCLUDE_TAMANHO],
 };
 
 function criarErro(mensagem, status) {
@@ -34,7 +41,7 @@ function formatarProduto(produto) {
         variantes: (produto.variantes || []).map((v) => ({
             id: v.id,
             cor: v.cor,
-            tamanho: v.tamanho,
+            tamanho: v.tamanho?.nome ?? null,
             estoque: v.estoque,
             imagem_url: v.imagem_url,
         })),
@@ -76,13 +83,14 @@ async function buscarProduto(id) {
 async function listarVariantes(produtoId) {
     const variantes = await ProdutoVariante.findAll({
         where: { produto_id: produtoId },
+        include: [INCLUDE_TAMANHO],
         order: [["id", "ASC"]],
     });
 
     return variantes.map((v) => ({
         id: v.id,
         cor: v.cor,
-        tamanho: v.tamanho,
+        tamanho: v.tamanho?.nome ?? null,
         estoque: v.estoque,
         imagem_url: v.imagem_url,
     }));
@@ -94,11 +102,13 @@ async function criarProdutoComVariantes(dados, variantes = []) {
     const categoria = await Categoria.findByPk(dados.categoria_id);
     if (!categoria) throw criarErro("Categoria não encontrada", 400);
 
-    // nenhum tamanho pode ficar fora da tabela `tamanhos`
+    // Resolve cada sigla textual para o tamanho_id correspondente
+    let tamanhoMap = new Map();
     if (variantes.length > 0) {
         const siglas = [...new Set(variantes.map((v) => v.tamanho))];
-        const existentes = await Tamanho.findAll({ where: { nome: siglas }, attributes: ["nome"] });
+        const existentes = await Tamanho.findAll({ where: { nome: siglas }, attributes: ["id", "nome"] });
         if (existentes.length !== siglas.length) throw criarErro("Tamanho inválido", 400);
+        tamanhoMap = new Map(existentes.map((t) => [t.nome, t.id]));
     }
 
     const produto = await sequelize.transaction(async (t) => {
@@ -109,7 +119,7 @@ async function criarProdutoComVariantes(dados, variantes = []) {
                 variantes.map((v) => ({
                     produto_id: novo.id,
                     cor: v.cor,
-                    tamanho: v.tamanho,
+                    tamanho_id: tamanhoMap.get(v.tamanho),
                     estoque: v.estoque,
                     imagem_url: v.imagem_url,
                 })),

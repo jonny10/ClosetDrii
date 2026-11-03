@@ -7,7 +7,7 @@ async function renderProdutos(req, res, next) {
             Produto.findAll({
                 include: [
                     { model: Categoria, as: "categoria", attributes: ["id", "nome"] },
-                    { model: ProdutoVariante, as: "variantes", attributes: ["tamanho", "imagem_url"] },
+                    { model: ProdutoVariante, as: "variantes", attributes: ["tamanho_id", "imagem_url"], include: [{ model: Tamanho, as: "tamanho", attributes: ["id", "nome"] }] },
                 ],
                 order: [["created_at", "DESC"]],
             }),
@@ -19,7 +19,7 @@ async function renderProdutos(req, res, next) {
         // Os cards são renderizados no servidor ({{#each}}); o JS do catálogo filtra
         // e ordena no DOM a partir dos data-attributes daqui.
         const lista = produtos.map((p) => {
-            const tamanhos = [...new Set((p.variantes || []).map((v) => v.tamanho))];
+            const tamanhos = [...new Set((p.variantes || []).map((v) => v.tamanho?.nome ?? null).filter(Boolean))];
             return {
                 id: p.id,
                 nome: p.nome,

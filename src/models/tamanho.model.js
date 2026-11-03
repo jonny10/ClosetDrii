@@ -16,6 +16,8 @@ const Tamanho = sequelize.define(
     }
 );
 
-// sem associações — produto_variantes.tamanho guarda o texto (sem FK)
+Tamanho.associate = (models) => {
+    Tamanho.hasMany(models.ProdutoVariante, { foreignKey: "tamanho_id", as: "variantes" });
+};
 
 module.exports = Tamanho;
