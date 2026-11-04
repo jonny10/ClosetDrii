@@ -1,91 +1,91 @@
 import { showSnackbar } from "/js/global/snackbar.js";
 
-// Catálogo (admin) — CRUD de produtos e variantes.
+// Catálogo (admin) — a tabela e o select de categorias são renderizados no
+// SERVIDOR (Handlebars). Aqui fica a UI: busca sobre as linhas do DOM, modal
+// de formulário, variantes em memória e as chamadas de CRUD à API.
+// Depois de uma mutação bem-sucedida a página recarrega (o servidor re-renderiza
+// a tabela) e o snackbar chega via sessionStorage.
 //
-// Proteção de rota (admin) e persistência agora são do back-end (Node/Express + Sequelize):
-//   - A rota deve ser protegida por middleware no servidor (não mais no cliente).
-//   - Listar/criar/editar/excluir produtos e variantes vira chamada à API.
-//   - Upload de imagem deve ser feito pelo back-end (a antiga chave imgBB no cliente
-//     era um segredo exposto e foi REMOVIDA).
-//
-// Mantida aqui toda a UI: tabela, modal de formulário e edição de variantes em memória.
+// Upload de imagem segue PENDENTE de uma rota de upload no back-end — o preview
+// no modal é apenas visual e a imagem_url existente é preservada.
 
-// Estados voláteis locais (populados pelo back-end via TODO)
-let produtosCache = [];
-let categoriasCache = {};
+const CHAVE_SNACKBAR = "catalogoSnackbar";
+
 let buscaDebounceTimer;
 let idProdutoParaExcluir = null;
 let variantesFormState = [];
-const arquivosPendentes = {}; // { [rowId]: File }
+let idsVariantesOriginais = []; // ids no banco quando a edição abriu (p/ calcular remoções)
+const arquivosPendentes = {}; // { [rowId]: File } — preview visual apenas
 
 document.addEventListener("DOMContentLoaded", () => {
-  // TODO (nova stack): proteger a rota no servidor. Aqui apenas carrega a UI.
-  carregarDadosIniciais();
+  restaurarSnackbarAposReload();
   configurarOuvintesEventos();
+  configurarOuvintesCategorias();
+  configurarOuvintesTamanhos();
+  filtrarTabela();
 });
 
-// TODO (nova stack): buscar produtos e categorias do back-end (GET /admin/produtos, /categorias)
-async function carregarDadosIniciais() {
-  produtosCache = [];
-
-  // Popular o select de categorias quando os dados vierem do servidor.
-  const selectCategoria = document.getElementById("form-categoria");
-  if (selectCategoria) selectCategoria.innerHTML = "";
-  // Ex.: categoriasCache[id] = nome; e criar <option> para cada.
-
-  filtrarERenderizarTabela();
+// Snackbar que sobrevive ao reload pós-mutação
+function snackbarAposReload(mensagem) {
+  sessionStorage.setItem(CHAVE_SNACKBAR, mensagem);
+  window.location.reload();
 }
 
-// Filtra em memória e injeta as linhas da tabela
-function filtrarERenderizarTabela() {
+function restaurarSnackbarAposReload() {
+  const mensagem = sessionStorage.getItem(CHAVE_SNACKBAR);
+  if (mensagem) {
+    sessionStorage.removeItem(CHAVE_SNACKBAR);
+    showSnackbar(mensagem, "success");
+  }
+}
+
+// Mostra/esconde as linhas conforme o termo de busca (nome + descrição)
+function filtrarTabela() {
   const tbody = document.getElementById("crud-products-tbody");
   if (!tbody) return;
 
-  const inputBusca = document.getElementById("crud-search-input");
-  const termo = inputBusca?.value.trim().toLowerCase() || "";
+  const termo = (document.getElementById("crud-search-input")?.value || "")
+    .trim()
+    .toLowerCase();
 
-  const produtosFiltrados = produtosCache.filter(
-    (p) =>
-      p.nome.toLowerCase().includes(termo) ||
-      p.descricao.toLowerCase().includes(termo),
-  );
-
-  if (produtosFiltrados.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" class="table-empty">Nenhum look corresponde aos critérios de pesquisa.</td></tr>`;
-    return;
-  }
-
-  const fragment = document.createDocumentFragment();
-
-  produtosFiltrados.forEach((produto) => {
-    const tr = document.createElement("tr");
-
-    const listaVariantesHTML =
-      produto.variantes.length > 0
-        ? `<ul class="crud-variants-list">
-          ${produto.variantes.map((v) => `<li><i class="fas fa-caret-right"></i> ${v.tamanho}-${v.cor} <strong>(${v.estoque})</strong></li>`).join("")}
-         </ul>`
-        : '<span class="no-variants-text">Sem variantes</span>';
-
-    tr.innerHTML = `
-      <td><strong>#${String(produto.id).padStart(3, "0")}</strong></td>
-      <td><span class="product-title-bold">${produto.nome}</span></td>
-      <td><span class="badge-category">${produto.categoria}</span></td>
-      <td><span class="product-price-highlight">${produto.preco.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span></td>
-      <td>${listaVariantesHTML}</td>
-      <td>
-        <div class="action-buttons-wrapper">
-          <button class="btn-action-edit" data-id="${produto.id}" title="Editar Look"><i class="fas fa-edit"></i></button>
-          <button class="btn-action-delete" data-id="${produto.id}" title="Excluir Look"><i class="fas fa-trash"></i></button>
-        </div>
-      </td>
-    `;
-
-    fragment.appendChild(tr);
+  const linhas = [...tbody.querySelectorAll('tr[data-id]')];
+  const visiveis = termo ? linhas.filter((r) => r.dataset.busca.includes(termo)) : linhas;
+  linhas.forEach((r) => {
+    r.style.display = visiveis.includes(r) ? "" : "none";
   });
 
-  tbody.innerHTML = "";
-  tbody.appendChild(fragment);
+  let vazio = tbody.querySelector(".table-empty-row");
+  if (visiveis.length === 0) {
+    if (!vazio) {
+      vazio = document.createElement("tr");
+      vazio.className = "table-empty-row";
+      vazio.innerHTML =
+        '<td colspan="6" class="table-empty">Nenhum look corresponde aos critérios de pesquisa.</td>';
+      tbody.appendChild(vazio);
+    }
+  } else if (vazio) {
+    vazio.remove();
+  }
+}
+
+// --- Tamanhos (vêm da tabela `tamanhos` — nada de lista hardcoded) ---
+let tamanhosCache = null;
+
+async function obterTamanhos() {
+  if (tamanhosCache) return tamanhosCache;
+  try {
+    const resp = await fetch("/api/tamanhos");
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    tamanhosCache = await resp.json(); // [{ id, nome, ordem }]
+  } catch (err) {
+    console.error("Erro ao carregar tamanhos:", err);
+    tamanhosCache = [];
+  }
+  return tamanhosCache;
+}
+
+function tamanhoPadrao() {
+  return tamanhosCache?.[0]?.nome || "M";
 }
 
 function configurarOuvintesEventos() {
@@ -99,33 +99,36 @@ function configurarOuvintesEventos() {
 
   inputBusca?.addEventListener("input", () => {
     clearTimeout(buscaDebounceTimer);
-    buscaDebounceTimer = setTimeout(() => filtrarERenderizarTabela(), 250);
-  });
-
-  btnOpenCreate?.addEventListener("click", () => {
-    form.reset();
-    document.getElementById("form-product-id").value = "";
-    document.getElementById("modal-title-context").textContent =
-      "Cadastrar Novo Look";
-
-    variantesFormState = [
-      { id: `new_${Date.now()}`, tamanho: "M", cor: "", estoque: 1, imagem_url: "" },
-    ];
-    renderizarLinhasVariantesModal();
-    modal.style.display = "flex";
+    buscaDebounceTimer = setTimeout(filtrarTabela, 250);
   });
 
   const fecharModal = () => {
     modal.style.display = "none";
     Object.keys(arquivosPendentes).forEach((k) => delete arquivosPendentes[k]);
   };
+
+  btnOpenCreate?.addEventListener("click", async () => {
+    await obterTamanhos();
+    form.reset();
+    document.getElementById("form-product-id").value = "";
+    document.getElementById("modal-title-context").textContent = "Cadastrar Novo Look";
+
+    idsVariantesOriginais = [];
+    variantesFormState = [
+      { id: `new_${Date.now()}`, tamanho: tamanhoPadrao(), cor: "", estoque: 1, imagem_url: "" },
+    ];
+    renderizarLinhasVariantesModal();
+    modal.style.display = "flex";
+  });
+
   document.getElementById("btn-close-modal")?.addEventListener("click", fecharModal);
   document.getElementById("btn-cancel-form")?.addEventListener("click", fecharModal);
 
-  btnAddVariantRow?.addEventListener("click", () => {
+  btnAddVariantRow?.addEventListener("click", async () => {
+    await obterTamanhos();
     variantesFormState.push({
       id: `new_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-      tamanho: "M",
+      tamanho: tamanhoPadrao(),
       cor: "",
       estoque: 1,
       imagem_url: "",
@@ -139,7 +142,7 @@ function configurarOuvintesEventos() {
     const rowId = e.target.dataset.rowId;
     if (!field || !rowId) return;
 
-    const variante = variantesFormState.find((v) => v.id === rowId);
+    const variante = variantesFormState.find((v) => String(v.id) === rowId);
     if (variante) {
       variante[field] =
         field === "estoque" ? Number(e.target.value) : e.target.value.trim();
@@ -151,46 +154,29 @@ function configurarOuvintesEventos() {
     if (!btnDelete) return;
 
     const rowId = btnDelete.dataset.rowId;
-    variantesFormState = variantesFormState.filter((v) => v.id !== rowId);
+    variantesFormState = variantesFormState.filter((v) => String(v.id) !== rowId);
     renderizarLinhasVariantesModal();
   });
 
+  // Delegação: editar abre o modal com o produto vindo da API; excluir abre a confirmação
   tbody?.addEventListener("click", (e) => {
     const targetBtn = e.target.closest("button");
     if (!targetBtn) return;
 
     const idProduto = Number(targetBtn.dataset.id);
-    const produtoSelecionado = produtosCache.find((p) => p.id === idProduto);
+    if (!idProduto) return;
 
-    if (targetBtn.classList.contains("btn-action-edit") && produtoSelecionado) {
-      document.getElementById("form-product-id").value = String(produtoSelecionado.id);
-      document.getElementById("form-nome").value = produtoSelecionado.nome;
-      document.getElementById("form-descricao").value = produtoSelecionado.descricao;
-      document.getElementById("form-preco").value = produtoSelecionado.preco;
-
-      const fkCategoria = Object.keys(categoriasCache).find(
-        (key) => categoriasCache[key] === produtoSelecionado.categoria,
-      );
-      if (fkCategoria) document.getElementById("form-categoria").value = fkCategoria;
-
-      variantesFormState = produtoSelecionado.variantes.map((v) => ({ ...v }));
-      renderizarLinhasVariantesModal();
-
-      document.getElementById("modal-title-context").textContent =
-        `Editando Look #${produtoSelecionado.id}`;
-      modal.style.display = "flex";
+    if (targetBtn.classList.contains("btn-action-edit")) {
+      abrirEdicao(idProduto);
     } else if (targetBtn.classList.contains("btn-action-delete")) {
       idProdutoParaExcluir = idProduto;
       deleteModal.style.display = "flex";
     }
   });
 
-  document
-    .getElementById("btn-close-delete-modal")
-    ?.addEventListener("click", () => (deleteModal.style.display = "none"));
-  document
-    .getElementById("btn-cancel-delete")
-    ?.addEventListener("click", () => (deleteModal.style.display = "none"));
+  const fecharDelete = () => (deleteModal.style.display = "none");
+  document.getElementById("btn-close-delete-modal")?.addEventListener("click", fecharDelete);
+  document.getElementById("btn-cancel-delete")?.addEventListener("click", fecharDelete);
 
   document.getElementById("btn-confirm-delete")?.addEventListener("click", async () => {
     if (idProdutoParaExcluir) {
@@ -208,17 +194,54 @@ function configurarOuvintesEventos() {
       nome: document.getElementById("form-nome").value.trim(),
       descricao: document.getElementById("form-descricao").value.trim(),
       preco: Number(document.getElementById("form-preco").value),
-      categoria_id: document.getElementById("form-categoria").value,
+      categoria_id: Number(document.getElementById("form-categoria").value),
     };
 
-    if (idInputVal) {
-      await executarUpdateCompleto(idInputVal, dadosForm);
-    } else {
-      await executarInsercaoCompleta(dadosForm);
+    const salvou = idInputVal
+      ? await executarUpdateCompleto(Number(idInputVal), dadosForm)
+      : await executarInsercaoCompleta(dadosForm);
+
+    if (salvou) fecharModal();
+  });
+}
+
+// Busca o produto na API e abre o modal preenchido (fetch on-click, padrão da home)
+async function abrirEdicao(idProduto) {
+  try {
+    const [produto] = await Promise.all([
+      (async () => {
+        const resp = await fetch(`/api/produtos/${idProduto}`);
+        if (resp.status === 401) {
+          window.location.href = "/login";
+          return null;
+        }
+        if (!resp.ok) return null;
+        return resp.json();
+      })(),
+      obterTamanhos(),
+    ]);
+
+    if (!produto) {
+      showSnackbar("Erro ao carregar o produto.", "error");
+      return;
     }
 
-    fecharModal();
-  });
+    document.getElementById("form-product-id").value = String(produto.id);
+    document.getElementById("form-nome").value = produto.nome;
+    document.getElementById("form-descricao").value = produto.descricao;
+    document.getElementById("form-preco").value = produto.preco;
+    document.getElementById("form-categoria").value = String(produto.categoria.id);
+
+    variantesFormState = produto.variantes.map((v) => ({ ...v }));
+    idsVariantesOriginais = produto.variantes.map((v) => v.id);
+    renderizarLinhasVariantesModal();
+
+    document.getElementById("modal-title-context").textContent = `Editando Look #${produto.id}`;
+    document.getElementById("product-crud-modal").style.display = "flex";
+  } catch (err) {
+    console.error("Erro ao abrir edição:", err);
+    showSnackbar("Erro ao conectar com o servidor.", "error");
+  }
 }
 
 // Injeta as linhas de inputs de variantes no modal
@@ -227,7 +250,8 @@ function renderizarLinhasVariantesModal() {
   if (!container) return;
 
   if (variantesFormState.length === 0) {
-    container.innerHTML = `<p class="empty-variants-alert">Nenhuma variante cadastrada. Adicione pelo menos uma para o produto ir ao ar.</p>`;
+    container.innerHTML =
+      '<p class="empty-variants-alert">Nenhuma variante cadastrada. Adicione pelo menos uma para o produto ir ao ar.</p>';
     return;
   }
 
@@ -239,18 +263,22 @@ function renderizarLinhasVariantesModal() {
 
     const previewSrc = variante.imagem_url || "";
 
+    // opções do select vêm da tabela `tamanhos` (cache carregada na abertura do modal)
+    const opcoesTamanho = (tamanhosCache || [])
+      .map(
+        (t) =>
+          `<option value="${t.nome}" ${variante.tamanho === t.nome ? "selected" : ""}>${t.nome}</option>`,
+      )
+      .join("");
+
     row.innerHTML = `
       <select data-row-id="${variante.id}" data-field="tamanho" required>
-        <option value="P" ${variante.tamanho === "P" ? "selected" : ""}>P</option>
-        <option value="M" ${variante.tamanho === "M" ? "selected" : ""}>M</option>
-        <option value="G" ${variante.tamanho === "G" ? "selected" : ""}>G</option>
-        <option value="GG" ${variante.tamanho === "GG" ? "selected" : ""}>GG</option>
-        <option value="U" ${variante.tamanho === "U" ? "selected" : ""}>U</option>
+        ${opcoesTamanho}
       </select>
       <input type="text" data-row-id="${variante.id}" data-field="cor" value="${variante.cor}" required placeholder="Ex: Rosa Fúcsia" />
       <input type="number" data-row-id="${variante.id}" data-field="estoque" value="${variante.estoque}" min="0" required placeholder="10" />
       <div class="variant-image-upload">
-        ${previewSrc ? `<img class="variant-img-preview" src="${previewSrc}" alt="preview" />` : `<span class="variant-img-placeholder"><i class="fas fa-image"></i></span>`}
+        ${previewSrc ? `<img class="variant-img-preview" src="${previewSrc}" alt="preview" />` : '<span class="variant-img-placeholder"><i class="fas fa-image"></i></span>'}
         <label class="btn-upload-img" title="Selecionar imagem">
           <i class="fas fa-upload"></i>
           <input type="file" accept="image/*" data-row-id="${variante.id}" style="display:none" />
@@ -283,34 +311,392 @@ function renderizarLinhasVariantesModal() {
   container.appendChild(fragment);
 }
 
-// TODO (nova stack): o upload de imagem deve ser feito pelo back-end (rota de upload),
-// nunca com chave de API no cliente. Retorna a URL pública salva pelo servidor.
-async function uploadImagemVariante(rowId) {
-  const file = arquivosPendentes[rowId];
-  if (!file) return null;
-  console.log("Upload de imagem pendente de integração com o back-end:", rowId, file.name);
-  return null;
-}
-
-// TODO (nova stack): criar produto + variantes via API (POST /admin/produtos),
-// dentro de uma transação SQL no servidor.
+// POST /api/admin/produtos — cria produto + variantes (transação no servidor)
 async function executarInsercaoCompleta(dadosProduto) {
   if (variantesFormState.length === 0) {
     showSnackbar("É necessário adicionar pelo menos uma variante.", "error");
-    return;
+    return false;
   }
-  console.log("Inserção (pendente integração):", { dadosProduto, variantes: variantesFormState });
-  showSnackbar("Cadastro ainda não integrado ao back-end.", "info");
+
+  showSnackbar("Processando inserção relacional...", "info");
+
+  try {
+    const resp = await fetch("/api/admin/produtos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...dadosProduto,
+        variantes: variantesFormState.map(montarPayloadVariante),
+      }),
+    });
+
+    if (resp.status === 401) {
+      window.location.href = "/login";
+      return false;
+    }
+
+    const data = await resp.json().catch(() => ({}));
+
+    if (!resp.ok) {
+      showSnackbar(data.error || "Falha ao salvar o look.", "error");
+      return false;
+    }
+
+    snackbarAposReload("Look e variantes salvos com sucesso!");
+    return true;
+  } catch (err) {
+    console.error(err);
+    showSnackbar("Erro ao conectar com o servidor.", "error");
+    return false;
+  }
 }
 
-// TODO (nova stack): atualizar produto + variantes via API (PUT /admin/produtos/:id).
+// PATCH /api/admin/produtos/:id + sincronização de variantes (cria/atualiza/remove)
 async function executarUpdateCompleto(produtoId, dadosProduto) {
-  console.log("Update (pendente integração):", { produtoId, dadosProduto, variantes: variantesFormState });
-  showSnackbar("Edição ainda não integrada ao back-end.", "info");
+  showSnackbar("Sincronizando modificações...", "info");
+
+  try {
+    const respProduto = await fetch(`/api/admin/produtos/${produtoId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(dadosProduto),
+    });
+
+    if (respProduto.status === 401) {
+      window.location.href = "/login";
+      return false;
+    }
+    if (!respProduto.ok) {
+      const data = await respProduto.json().catch(() => ({}));
+      showSnackbar(data.error || "Falha ao atualizar o look.", "error");
+      return false;
+    }
+
+    // 1. remove as variantes que saíram do formulário
+    const idsNoForm = new Set(
+      variantesFormState.filter((v) => Number.isInteger(v.id)).map((v) => v.id),
+    );
+    for (const idOriginal of idsVariantesOriginais) {
+      if (idsNoForm.has(idOriginal)) continue;
+
+      const resp = await fetch(`/api/admin/variantes/${idOriginal}`, { method: "DELETE" });
+      if (resp.status === 401) {
+        window.location.href = "/login";
+        return false;
+      }
+      if (!resp.ok) {
+        const data = await resp.json().catch(() => ({}));
+        showSnackbar(data.error || "Falha ao remover variante.", "error");
+        return false;
+      }
+    }
+
+    // 2. cria as novas e atualiza as existentes
+    for (const variante of variantesFormState) {
+      const existente = Number.isInteger(variante.id);
+      const resp = await fetch(
+        existente ? `/api/admin/variantes/${variante.id}` : `/api/admin/produtos/${produtoId}/variantes`,
+        {
+          method: existente ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(montarPayloadVariante(variante)),
+        },
+      );
+
+      if (resp.status === 401) {
+        window.location.href = "/login";
+        return false;
+      }
+      if (!resp.ok) {
+        const data = await resp.json().catch(() => ({}));
+        showSnackbar(data.error || "Falha ao salvar variante.", "error");
+        return false;
+      }
+    }
+
+    snackbarAposReload("Catálogo atualizado com sucesso!");
+    return true;
+  } catch (err) {
+    console.error(err);
+    showSnackbar("Erro ao conectar com o servidor.", "error");
+    return false;
+  }
 }
 
-// TODO (nova stack): excluir produto (cascata de variantes) via API (DELETE /admin/produtos/:id).
+// Monta o payload de uma variante — imagem_url só vai quando preenchida
+// (a API rejeita valores que não sejam string)
+function montarPayloadVariante(variante) {
+  const payload = {
+    cor: variante.cor,
+    tamanho: variante.tamanho,
+    estoque: Number(variante.estoque),
+  };
+  if (variante.imagem_url) payload.imagem_url = variante.imagem_url;
+  return payload;
+}
+
+// DELETE /api/admin/produtos/:id — cascata de variantes no servidor
 async function executarRemocaoProduto(id) {
-  console.log("Remoção (pendente integração):", id);
-  showSnackbar("Exclusão ainda não integrada ao back-end.", "info");
+  showSnackbar("Limpando registros em cascata...", "info");
+
+  try {
+    const resp = await fetch(`/api/admin/produtos/${id}`, { method: "DELETE" });
+
+    if (resp.status === 401) {
+      window.location.href = "/login";
+      return;
+    }
+
+    const data = await resp.json().catch(() => ({}));
+
+    if (!resp.ok) {
+      showSnackbar(data.error || "Falha ao excluir o produto.", "error");
+      return;
+    }
+
+    snackbarAposReload("Produto e suas variantes removidos da base.");
+  } catch (err) {
+    console.error(err);
+    showSnackbar("Erro ao conectar com o servidor.", "error");
+  }
+}
+
+// --- Modais de categorias e tamanhos (CRUD via /api/admin/*) ---
+//
+// Os dois modais compartilham o mesmo comportamento de rodapé:
+// em modo criação → "Novo" + "Salvar X"
+// em modo edição  → "Cancelar" (sai da edição) + "Editar" (salva a alteração)
+// Os rótulos ficam nos data-label-criacao / data-label-edicao dos botões.
+
+function alternarModoEdicao(form, emEdicao) {
+  form.querySelectorAll("[data-label-criacao], [data-label-edicao]").forEach((btn) => {
+    const rotulo = emEdicao ? btn.dataset.labelEdicao : btn.dataset.labelCriacao;
+    if (rotulo) btn.textContent = rotulo;
+  });
+
+  const titulo = form.closest(".modal-card")?.querySelector("[data-titulo-criacao]");
+  if (titulo) {
+    titulo.textContent = emEdicao
+      ? titulo.dataset.tituloEdicao
+      : titulo.dataset.tituloCriacao;
+  }
+}
+
+function configurarOuvintesCategorias() {
+  const modal = document.getElementById("categorias-modal");
+  const form = document.getElementById("categoria-form");
+  if (!modal || !form) return;
+
+  document.getElementById("btn-open-categorias-modal")?.addEventListener("click", () => {
+    resetarFormCategoria();
+    modal.style.display = "flex";
+  });
+
+  document
+    .getElementById("btn-close-categorias-modal")
+    ?.addEventListener("click", () => (modal.style.display = "none"));
+
+  document.getElementById("btn-reset-categoria")?.addEventListener("click", () => {
+    // em modo edição o botão vira "Cancelar": volta ao formulário de criação
+    resetarFormCategoria();
+  });
+
+  // delegação: editar preenche o form, excluir manda o DELETE
+  document.querySelector(".categorias-list")?.addEventListener("click", (e) => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+
+    const item = btn.closest(".categoria-item");
+    const id = Number(btn.dataset.id);
+
+    if (btn.classList.contains("btn-categoria-edit") && item) {
+      document.getElementById("categoria-id").value = String(id);
+      document.getElementById("categoria-nome").value = item.dataset.nome;
+      document.getElementById("categoria-descricao").value = item.dataset.descricao;
+      alternarModoEdicao(form, true);
+      document.getElementById("categoria-nome").focus();
+    } else if (btn.classList.contains("btn-categoria-delete")) {
+      removerCategoria(id);
+    }
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const idInput = document.getElementById("categoria-id").value;
+    const payload = {
+      nome: document.getElementById("categoria-nome").value.trim(),
+      descricao: document.getElementById("categoria-descricao").value.trim(),
+    };
+
+    try {
+      const resp = await fetch(
+        idInput ? `/api/admin/categorias/${idInput}` : "/api/admin/categorias",
+        {
+          method: idInput ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        },
+      );
+
+      if (resp.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
+
+      const data = await resp.json().catch(() => ({}));
+
+      if (!resp.ok) {
+        showSnackbar(data.error || "Falha ao salvar categoria.", "error");
+        return;
+      }
+
+      snackbarAposReload(
+        idInput ? "Categoria atualizada com sucesso!" : "Categoria criada com sucesso!",
+      );
+    } catch (err) {
+      console.error(err);
+      showSnackbar("Erro ao conectar com o servidor.", "error");
+    }
+  });
+}
+
+function resetarFormCategoria() {
+  document.getElementById("categoria-form").reset();
+  document.getElementById("categoria-id").value = "";
+  const form = document.getElementById("categoria-form");
+  if (form) alternarModoEdicao(form, false);
+}
+
+// --- Modal de tamanhos (CRUD via /api/admin/tamanhos) ---
+
+function configurarOuvintesTamanhos() {
+  const modal = document.getElementById("tamanhos-modal");
+  const form = document.getElementById("tamanho-form");
+  if (!modal || !form) return;
+
+  document.getElementById("btn-open-tamanhos-modal")?.addEventListener("click", () => {
+    resetarFormTamanho();
+    modal.style.display = "flex";
+  });
+
+  document
+    .getElementById("btn-close-tamanhos-modal")
+    ?.addEventListener("click", () => (modal.style.display = "none"));
+
+  document.getElementById("btn-reset-tamanho")?.addEventListener("click", () => {
+    // em modo edição o botão vira "Cancelar": volta ao formulário de criação
+    resetarFormTamanho();
+  });
+
+  document.querySelector(".tamanhos-list")?.addEventListener("click", (e) => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+
+    const item = btn.closest(".tamanho-item");
+    const id = Number(btn.dataset.id);
+
+    if (btn.classList.contains("btn-tamanho-edit") && item) {
+      document.getElementById("tamanho-id").value = String(id);
+      document.getElementById("tamanho-nome").value = item.dataset.nome;
+      document.getElementById("tamanho-ordem").value = item.dataset.ordem;
+      alternarModoEdicao(form, true);
+      document.getElementById("tamanho-nome").focus();
+    } else if (btn.classList.contains("btn-tamanho-delete")) {
+      removerTamanho(id);
+    }
+  });
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const idInput = document.getElementById("tamanho-id").value;
+    const payload = {
+      nome: document.getElementById("tamanho-nome").value.trim(),
+      ordem: Number(document.getElementById("tamanho-ordem").value),
+    };
+
+    try {
+      const resp = await fetch(
+        idInput ? `/api/admin/tamanhos/${idInput}` : "/api/admin/tamanhos",
+        {
+          method: idInput ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        },
+      );
+
+      if (resp.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
+
+      const data = await resp.json().catch(() => ({}));
+
+      if (!resp.ok) {
+        showSnackbar(data.error || "Falha ao salvar tamanho.", "error");
+        return;
+      }
+
+      snackbarAposReload(
+        idInput ? "Tamanho atualizado com sucesso!" : "Tamanho criado com sucesso!",
+      );
+    } catch (err) {
+      console.error(err);
+      showSnackbar("Erro ao conectar com o servidor.", "error");
+    }
+  });
+}
+
+function resetarFormTamanho() {
+  document.getElementById("tamanho-form").reset();
+  document.getElementById("tamanho-id").value = "";
+  const form = document.getElementById("tamanho-form");
+  if (form) alternarModoEdicao(form, false);
+}
+
+async function removerTamanho(id) {
+  try {
+    const resp = await fetch(`/api/admin/tamanhos/${id}`, { method: "DELETE" });
+
+    if (resp.status === 401) {
+      window.location.href = "/login";
+      return;
+    }
+
+    const data = await resp.json().catch(() => ({}));
+
+    if (!resp.ok) {
+      showSnackbar(data.error || "Falha ao excluir tamanho.", "error");
+      return;
+    }
+
+    snackbarAposReload("Tamanho removido com sucesso!");
+  } catch (err) {
+    console.error(err);
+    showSnackbar("Erro ao conectar com o servidor.", "error");
+  }
+}
+
+async function removerCategoria(id) {
+  try {
+    const resp = await fetch(`/api/admin/categorias/${id}`, { method: "DELETE" });
+
+    if (resp.status === 401) {
+      window.location.href = "/login";
+      return;
+    }
+
+    const data = await resp.json().catch(() => ({}));
+
+    if (!resp.ok) {
+      showSnackbar(data.error || "Falha ao excluir categoria.", "error");
+      return;
+    }
+
+    snackbarAposReload("Categoria removida com sucesso!");
+  } catch (err) {
+    console.error(err);
+    showSnackbar("Erro ao conectar com o servidor.", "error");
+  }
 }

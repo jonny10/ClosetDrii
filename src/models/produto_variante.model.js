@@ -7,7 +7,7 @@ const ProdutoVariante = sequelize.define(
         id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
         produto_id: { type: DataTypes.INTEGER, allowNull: false },
         cor: { type: DataTypes.STRING(50), allowNull: false },
-        tamanho: { type: DataTypes.STRING(10), allowNull: false },
+        tamanho_id: { type: DataTypes.INTEGER, allowNull: false },
         imagem_url: { type: DataTypes.STRING(255) },
         estoque: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
     },
@@ -16,12 +16,13 @@ const ProdutoVariante = sequelize.define(
         timestamps: true,
         createdAt: "created_at",
         updatedAt: "updated_at",
-        indexes: [{ unique: true, fields: ["produto_id", "cor", "tamanho"] }],
+        indexes: [{ unique: true, fields: ["produto_id", "cor", "tamanho_id"] }],
     }
 );
 
 ProdutoVariante.associate = (models) => {
     ProdutoVariante.belongsTo(models.Produto, { foreignKey: "produto_id", as: "produto" });
+    ProdutoVariante.belongsTo(models.Tamanho, { foreignKey: "tamanho_id", as: "tamanho" });
     ProdutoVariante.hasMany(models.ProdutoVenda, { foreignKey: "produto_variante_id", as: "produto_vendas" });
 };
 

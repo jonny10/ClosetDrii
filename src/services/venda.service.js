@@ -1,5 +1,5 @@
 const sequelize = require("../config/database");
-const { Venda, ProdutoVenda, ProdutoVariante, Produto, Usuario, Endereco } = require("../models");
+const { Venda, ProdutoVenda, ProdutoVariante, Produto, Usuario, Endereco, Tamanho } = require("../models");
 
 // Campos aceitos em criar/atualizar — whitelist evita mass-assignment.
 // CRUD básico da tabela vendas: NÃO cria itens nem baixa estoque (isso é o
@@ -26,7 +26,7 @@ function formatarItem(item) {
             ? {
                   id: item.produto_variante.id,
                   cor: item.produto_variante.cor,
-                  tamanho: item.produto_variante.tamanho,
+                  tamanho: item.produto_variante.tamanho?.nome ?? null,
                   imagem_url: item.produto_variante.imagem_url,
                   produto: item.produto_variante.produto
                       ? {
@@ -75,7 +75,10 @@ async function listarVendas({ usuarioId, status } = {}) {
                     {
                         model: ProdutoVariante,
                         as: "produto_variante",
-                        include: [{ model: Produto, as: "produto", attributes: ["id", "nome"] }],
+                        include: [
+                            { model: Produto, as: "produto", attributes: ["id", "nome"] },
+                            { model: Tamanho, as: "tamanho", attributes: ["id", "nome"] },
+                        ],
                     },
                 ],
             },
@@ -98,7 +101,10 @@ async function buscarVenda(id) {
                     {
                         model: ProdutoVariante,
                         as: "produto_variante",
-                        include: [{ model: Produto, as: "produto", attributes: ["id", "nome"] }],
+                        include: [
+                            { model: Produto, as: "produto", attributes: ["id", "nome"] },
+                            { model: Tamanho, as: "tamanho", attributes: ["id", "nome"] },
+                        ],
                     },
                 ],
             },

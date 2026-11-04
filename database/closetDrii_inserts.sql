@@ -86,41 +86,54 @@ INSERT INTO `produtos` (`nome`, `descricao`, `preco`, `categoria_id`) VALUES
 ('Calça Pantalona Floral', 'Calça pantalona com estampa floral, confortável e estilosa', 169.90, 3);
 
 -- ============================================================
--- 5. PRODUTO_VARIANTES (32 linhas)
+-- 5. TAMANHOS (8 linhas) — antes de produto_variantes (FK)
 -- ============================================================
-INSERT INTO `produto_variantes` (`produto_id`, `cor`, `tamanho`, `imagem_url`, `estoque`) VALUES
-(1, 'Rosa', 'P', 'src/assets/img/produtos/vestido-floral-rosa-p.jpg', 5),
-(1, 'Rosa', 'M', 'src/assets/img/produtos/vestido-floral-rosa-m.jpg', 7),
-(1, 'Azul', 'M', 'src/assets/img/produtos/vestido-floral-azul-m.jpg', 4),
-(2, 'Preto', 'P', 'src/assets/img/produtos/vestido-tubinho-preto-p.jpg', 3),
-(2, 'Preto', 'M', 'src/assets/img/produtos/vestido-tubinho-preto-m.jpg', 6),
-(2, 'Preto', 'G', 'src/assets/img/produtos/vestido-tubinho-preto-g.jpg', 2),
-(3, 'Branco', 'P', 'src/assets/img/produtos/blusa-cropped-branco-p.jpg', 8),
-(3, 'Colorido', 'M', 'src/assets/img/produtos/blusa-cropped-color-m.jpg', 6),
-(4, 'Off-White', 'M', 'src/assets/img/produtos/blusa-seda-offwhite-m.jpg', 5),
-(5, 'Azul Escuro', '36', 'src/assets/img/produtos/calca-jeans-36.jpg', 4),
-(5, 'Azul Escuro', '38', 'src/assets/img/produtos/calca-jeans-38.jpg', 7),
-(5, 'Azul Escuro', '40', 'src/assets/img/produtos/calca-jeans-40.jpg', 5),
-(6, 'Preto', '38', 'src/assets/img/produtos/calca-social-preta-38.jpg', 4),
-(7, 'Verde', 'M', 'src/assets/img/produtos/saia-midi-verde-m.jpg', 5),
-(7, 'Bege', 'G', 'src/assets/img/produtos/saia-midi-bege-g.jpg', 3),
-(8, 'Azul', 'P', 'src/assets/img/produtos/saia-jeans-mini-azul-p.jpg', 6),
-(9, 'Azul', 'P', 'src/assets/img/produtos/vestido-azul-ombro-p.jpg', 4),
-(9, 'Azul', 'M', 'src/assets/img/produtos/vestido-azul-ombro-m.jpg', 5),
-(10, 'Xadrez', 'M', 'src/assets/img/produtos/vestido-xadrez-m.jpg', 3),
-(11, 'Caramelo', 'U', 'src/assets/img/produtos/bolsa-tote-caramelo.jpg', 8),
-(12, 'Preto', 'U', 'src/assets/img/produtos/cinto-trancado-preto.jpg', 10),
-(13, 'Branco', 'P', 'src/assets/img/produtos/camisa-florida-branco-p.jpg', 6),
-(13, 'Rosa', 'M', 'src/assets/img/produtos/camisa-florida-rosa-m.jpg', 5),
-(14, 'Tie-Dye', 'M', 'src/assets/img/produtos/blusa-tiedye-m.jpg', 7),
-(15, 'Verde', 'M', 'src/assets/img/produtos/saia-longa-verde-m.jpg', 4),
-(15, 'Estampado', 'G', 'src/assets/img/produtos/saia-longa-estampada-g.jpg', 3),
-(16, 'Preto', 'M', 'src/assets/img/produtos/saia-assimetrica-preta-m.jpg', 4),
-(17, 'Terracota', 'M', 'src/assets/img/produtos/vestido-boho-terracota-m.jpg', 3),
-(18, 'Branco', 'P', 'src/assets/img/produtos/regata-basica-branco-p.jpg', 9),
-(18, 'Preto', 'M', 'src/assets/img/produtos/regata-basica-preto-m.jpg', 8),
-(19, 'Preto', 'M', 'src/assets/img/produtos/legging-fitness-preto-m.jpg', 7),
-(20, 'Floral', '38', 'src/assets/img/produtos/calca-pantalona-floral-38.jpg', 5);
+INSERT INTO `tamanhos` (`nome`, `ordem`) VALUES
+('P', 1),
+('M', 2),
+('G', 3),
+('GG', 4),
+('U', 5),
+('36', 6),
+('38', 7),
+('40', 8);
+
+-- ============================================================
+-- 6. PRODUTO_VARIANTES (32 linhas) — tamanho_id referencia tamanhos.id
+-- ============================================================
+INSERT INTO `produto_variantes` (`produto_id`, `cor`, `tamanho_id`, `imagem_url`, `estoque`) VALUES
+(1, 'Rosa', 1, 'src/assets/img/produtos/vestido-floral-rosa-p.jpg', 5),
+(1, 'Rosa', 2, 'src/assets/img/produtos/vestido-floral-rosa-m.jpg', 7),
+(1, 'Azul', 2, 'src/assets/img/produtos/vestido-floral-azul-m.jpg', 4),
+(2, 'Preto', 1, 'src/assets/img/produtos/vestido-tubinho-preto-p.jpg', 3),
+(2, 'Preto', 2, 'src/assets/img/produtos/vestido-tubinho-preto-m.jpg', 6),
+(2, 'Preto', 3, 'src/assets/img/produtos/vestido-tubinho-preto-g.jpg', 2),
+(3, 'Branco', 1, 'src/assets/img/produtos/blusa-cropped-branco-p.jpg', 8),
+(3, 'Colorido', 2, 'src/assets/img/produtos/blusa-cropped-color-m.jpg', 6),
+(4, 'Off-White', 2, 'src/assets/img/produtos/blusa-seda-offwhite-m.jpg', 5),
+(5, 'Azul Escuro', 6, 'src/assets/img/produtos/calca-jeans-36.jpg', 4),
+(5, 'Azul Escuro', 7, 'src/assets/img/produtos/calca-jeans-38.jpg', 7),
+(5, 'Azul Escuro', 8, 'src/assets/img/produtos/calca-jeans-40.jpg', 5),
+(6, 'Preto', 7, 'src/assets/img/produtos/calca-social-preta-38.jpg', 4),
+(7, 'Verde', 2, 'src/assets/img/produtos/saia-midi-verde-m.jpg', 5),
+(7, 'Bege', 3, 'src/assets/img/produtos/saia-midi-bege-g.jpg', 3),
+(8, 'Azul', 1, 'src/assets/img/produtos/saia-jeans-mini-azul-p.jpg', 6),
+(9, 'Azul', 1, 'src/assets/img/produtos/vestido-azul-ombro-p.jpg', 4),
+(9, 'Azul', 2, 'src/assets/img/produtos/vestido-azul-ombro-m.jpg', 5),
+(10, 'Xadrez', 2, 'src/assets/img/produtos/vestido-xadrez-m.jpg', 3),
+(11, 'Caramelo', 5, 'src/assets/img/produtos/bolsa-tote-caramelo.jpg', 8),
+(12, 'Preto', 5, 'src/assets/img/produtos/cinto-trancado-preto.jpg', 10),
+(13, 'Branco', 1, 'src/assets/img/produtos/camisa-florida-branco-p.jpg', 6),
+(13, 'Rosa', 2, 'src/assets/img/produtos/camisa-florida-rosa-m.jpg', 5),
+(14, 'Tie-Dye', 2, 'src/assets/img/produtos/blusa-tiedye-m.jpg', 7),
+(15, 'Verde', 2, 'src/assets/img/produtos/saia-longa-verde-m.jpg', 4),
+(15, 'Estampado', 3, 'src/assets/img/produtos/saia-longa-estampada-g.jpg', 3),
+(16, 'Preto', 2, 'src/assets/img/produtos/saia-assimetrica-preta-m.jpg', 4),
+(17, 'Terracota', 2, 'src/assets/img/produtos/vestido-boho-terracota-m.jpg', 3),
+(18, 'Branco', 1, 'src/assets/img/produtos/regata-basica-branco-p.jpg', 9),
+(18, 'Preto', 2, 'src/assets/img/produtos/regata-basica-preto-m.jpg', 8),
+(19, 'Preto', 2, 'src/assets/img/produtos/legging-fitness-preto-m.jpg', 7),
+(20, 'Floral', 7, 'src/assets/img/produtos/calca-pantalona-floral-38.jpg', 5);
 
 -- ============================================================
 -- 6. VENDAS (15 linhas)
@@ -167,7 +180,7 @@ INSERT INTO `produto_vendas` (`produto_variante_id`, `venda_id`, `quantidade`, `
 (22, 13, 2, 99.80);
 
 -- ============================================================
--- 8. CONTATO (5 linhas)
+-- 9. CONTATO (5 linhas)
 -- ============================================================
 INSERT INTO `contatos` (`nome`, `email`, `assunto`, `mensagem`) VALUES
 ('Leticia Moura', 'leticia.moura@email.com', 'Parceria', 'Olá, gostaria de discutir uma possível parceria comercial com a ClosetDrii.'),
@@ -177,7 +190,7 @@ INSERT INTO `contatos` (`nome`, `email`, `assunto`, `mensagem`) VALUES
 ('Renata Figueiredo', 'renata@email.com', 'Elogio', 'Amei a qualidade do vestido floral midi! Com certeza voltarei a comprar.');
 
 -- ============================================================
--- 9. AVALIACAO (12 linhas)
+-- 10. AVALIACAO (12 linhas)
 -- ============================================================
 INSERT INTO `avaliacoes` (`usuario_id`, `produto_id`, `nota`, `comentario`) VALUES
 (4, 1, 5, 'Vestido lindo, tecido de ótima qualidade e caimento perfeito!'),

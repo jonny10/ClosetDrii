@@ -1,0 +1,10 @@
+[
+    { "id": 1, "nome": "P", "ordem": 1 },
+    { "id": 2, "nome": "M", "ordem": 2 },
+    { "id": 3, "nome": "G", "ordem": 3 },
+    { "id": 4, "nome": "GG", "ordem": 4 },
+    { "id": 5, "nome": "U", "ordem": 5 },
+    { "id": 6, "nome": "36", "ordem": 6 },
+    { "id": 7, "nome": "38", "ordem": 7 },
+    { "id": 8, "nome": "40", "ordem": 8 }
+]
