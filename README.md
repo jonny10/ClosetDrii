@@ -16,7 +16,44 @@ administrativo para gestão de catálogo e vendas.
 - **Sequelize** (ORM) + **MySQL** (`mysql2`)
 
 ---
+## Infraestrutura e deploy
 
+A aplicação está publicada na Render e utiliza um banco de dados MySQL hospedado na Aiven.
+
+- **Aplicação:** [https://closetdrii.onrender.com](https://closetdrii.onrender.com)
+- **Repositório:** [https://github.com/jonny10/ClosetDrii](https://github.com/jonny10/ClosetDrii)
+- **Hospedagem da aplicação:** Render (Web Service com Node.js)
+- **Hospedagem do banco de dados:** Aiven (MySQL)
+
+### Configuração da Render
+
+| Configuração | Valor |
+|---|---|
+| Serviço | Web Service |
+| Runtime | Node |
+| Branch | `main` |
+| Build Command | `npm install` |
+| Start Command | `npm start` |
+| Root Directory | Raiz do repositório |
+
+A Render está conectada ao repositório do GitHub. Novos commits enviados para a branch `main` podem iniciar automaticamente um novo deploy.
+
+### Conexão com o banco MySQL
+
+O banco MySQL é hospedado na Aiven, separadamente da aplicação. A aplicação Node.js conecta ao banco utilizando as variáveis de ambiente cadastradas nas configurações do serviço na Render.
+
+Configure na seção **Environment** da Render:
+
+- `DB_HOST` — host fornecido pela Aiven
+- `DB_PORT` — porta fornecida pela Aiven
+- `DB_USER` — usuário do banco
+- `DB_PASSWORD` — senha do banco
+- `DB_NAME` — nome do banco (`closetDrii`)
+- `SESSION_SECRET` — chave secreta utilizada para as sessões
+
+A porta `PORT` é disponibilizada pela Render para a aplicação. Utilize os dados de conexão apresentados no painel da Aiven. Não coloque senhas ou credenciais diretamente no código ou no repositório.
+
+---
 ## Estrutura do projeto
 
 Organização em camadas (routes -> controllers -> services -> models), simples no início
