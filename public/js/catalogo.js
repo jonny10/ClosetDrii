@@ -6,8 +6,10 @@ import { showSnackbar } from "/js/global/snackbar.js";
 // Depois de uma mutação bem-sucedida a página recarrega (o servidor re-renderiza
 // a tabela) e o snackbar chega via sessionStorage.
 //
-// Upload de imagem segue PENDENTE de uma rota de upload no back-end — o preview
-// no modal é apenas visual e a imagem_url existente é preservada.
+// Upload de imagem: ao escolher um arquivo no modal ele fica em `arquivosPendentes`
+// (preview imediato via object URL). No submit, `enviarImagensPendentes()` sobe cada
+// arquivo para POST /api/admin/produtos/upload-imagem e grava a URL pública retornada
+// em `variante.imagem_url` — que então vai no payload de criação/atualização.
 
 const CHAVE_SNACKBAR = "catalogoSnackbar";
 
@@ -205,6 +207,45 @@ function configurarOuvintesEventos() {
   });
 }
 
+// Sobe os arquivos de imagem escolhidos no modal (um por variante) e grava a URL
+// pública devolvida pelo servidor em `variante.imagem_url`. Chamado antes de montar
+// o payload de criação/atualização. Retorna false (e mostra snackbar) se algum falhar.
+async function enviarImagensPendentes() {
+  for (const variante of variantesFormState) {
+    const arquivo = arquivosPendentes[variante.id];
+    if (!arquivo) continue;
+
+    const formData = new FormData();
+    formData.append("imagem", arquivo);
+
+    try {
+      const resp = await fetch("/api/admin/produtos/upload-imagem", {
+        method: "POST",
+        body: formData, // sem Content-Type manual: o browser define o boundary do multipart
+      });
+
+      if (resp.status === 401) {
+        window.location.href = "/login";
+        return false;
+      }
+
+      const data = await resp.json().catch(() => ({}));
+      if (!resp.ok || !data.url) {
+        showSnackbar(data.error || "Falha ao enviar a imagem.", "error");
+        return false;
+      }
+
+      variante.imagem_url = data.url;
+      delete arquivosPendentes[variante.id]; // evita reenviar se o submit repetir
+    } catch (err) {
+      console.error(err);
+      showSnackbar("Erro ao enviar a imagem.", "error");
+      return false;
+    }
+  }
+  return true;
+}
+
 // Busca o produto na API e abre o modal preenchido (fetch on-click, padrão da home)
 async function abrirEdicao(idProduto) {
   try {
@@ -318,6 +359,8 @@ async function executarInsercaoCompleta(dadosProduto) {
     return false;
   }
 
+  if (!(await enviarImagensPendentes())) return false;
+
   showSnackbar("Processando inserção relacional...", "info");
 
   try {
@@ -353,6 +396,8 @@ async function executarInsercaoCompleta(dadosProduto) {
 
 // PATCH /api/admin/produtos/:id + sincronização de variantes (cria/atualiza/remove)
 async function executarUpdateCompleto(produtoId, dadosProduto) {
+  if (!(await enviarImagensPendentes())) return false;
+
   showSnackbar("Sincronizando modificações...", "info");
 
   try {

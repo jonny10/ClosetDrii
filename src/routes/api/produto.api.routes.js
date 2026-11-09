@@ -4,12 +4,14 @@ const router = express.Router();
 const produtosController = require("../../controllers/api/produtos.api.controller");
 const logger = require("../../middlewares/logger.middleware");
 const requireAdmin = require("../../middlewares/require-admin.middleware");
+const uploadImagemProduto = require("../../middlewares/upload-imagem-produto.middleware");
 
 router.get("/produtos", logger, produtosController.listarProdutos);
 router.get("/produtos/:id", logger, produtosController.buscarProduto);
 router.get("/produtos/:id/variantes", logger, produtosController.listarVariantesDeProduto);
 
 // Admin (CRUD de produtos e variantes)
+router.post("/admin/produtos/upload-imagem", logger, requireAdmin, uploadImagemProduto, produtosController.uploadImagemProduto);
 router.post("/admin/produtos", logger, requireAdmin, produtosController.criarProduto);
 router.patch("/admin/produtos/:id", logger, requireAdmin, produtosController.atualizarProduto);
 router.delete("/admin/produtos/:id", logger, requireAdmin, produtosController.removerProduto);

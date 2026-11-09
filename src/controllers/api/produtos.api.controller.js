@@ -44,6 +44,13 @@ async function listarVariantesDeProduto(req, res, next) {
     }
 }
 
+// POST /api/admin/produtos/upload-imagem — recebe o arquivo (multipart, campo "imagem"),
+// que o middleware já salvou em uploads/produtos, e devolve a URL pública pra
+// o cliente gravar em imagem_url da variante.
+function uploadImagemProduto(req, res) {
+    return res.status(201).json({ url: req.imagemUrl });
+}
+
 // --- Admin: CRUD de produtos e variantes (T28) ---
 
 // Monta os campos do produto (parcial no PATCH); devolve string de erro quando inválido
@@ -300,6 +307,7 @@ module.exports = {
     listarProdutos,
     buscarProduto,
     listarVariantesDeProduto,
+    uploadImagemProduto,
     criarProduto,
     atualizarProduto,
     removerProduto,
