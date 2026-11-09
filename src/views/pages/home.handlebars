@@ -51,7 +51,7 @@
       {{#each destaques}}
         <div class="product-card-component" data-id="{{this.id}}">
           <div class="image-wrapper">
-            <img class="produto-img" src="{{this.imagem}}" alt="{{this.nome}}" />
+            <img class="produto-img" src="{{this.imagem}}" alt="{{this.nome}}" onerror="this.onerror=null;this.src='/assets/img/sala.png'" />
             <span class="product-badge">Novo</span>
           </div>
           <div class="card-info">
@@ -71,7 +71,7 @@
       {{#each ofertas}}
         <div class="product-card-component" data-id="{{this.id}}">
           <div class="image-wrapper">
-            <img class="produto-img" src="{{this.imagem}}" alt="{{this.nome}}" />
+            <img class="produto-img" src="{{this.imagem}}" alt="{{this.nome}}" onerror="this.onerror=null;this.src='/assets/img/sala.png'" />
             <span class="product-badge">Oferta</span>
           </div>
           <div class="card-info">
