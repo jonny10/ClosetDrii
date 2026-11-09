@@ -1,10 +1,13 @@
-const { Produto, Categoria } = require("../../models");
+const { Produto, Categoria, ProdutoVariante } = require("../../models");
 
 // Páginas falam direto com os models; a camada de services fica para a API.
 async function renderHome(req, res, next) {
     try {
         const produtos = await Produto.findAll({
-            include: { model: Categoria, as: "categoria", attributes: ["id", "nome"] },
+            include: [
+                { model: Categoria, as: "categoria", attributes: ["id", "nome"] },
+                { model: ProdutoVariante, as: "variantes", attributes: ["imagem_url"] },
+            ],
             order: [["created_at", "DESC"]],
             limit: 8,
         });
@@ -15,7 +18,8 @@ async function renderHome(req, res, next) {
             nome: p.nome,
             preco: Number(p.preco).toFixed(2).replace(".", ","), // 129.90 -> "129,90"
             categoria: p.categoria ? p.categoria.nome : null,
-            imagem: "/assets/img/sala.png", // produtos ainda não tem coluna de imagem
+            // imagem do card: 1ª variante que tiver imagem_url; senão, placeholder
+            imagem: (p.variantes || []).map((v) => v.imagem_url).find(Boolean) || "/assets/img/sala.png",
         }));
 
         // o banco não tem flag de "destaque"/"oferta"; por ora separo por fatia

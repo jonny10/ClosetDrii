@@ -29,9 +29,8 @@ async function renderProdutos(req, res, next) {
                 categoria: p.categoria ? p.categoria.nome : null,
                 tamanhos: tamanhos.join(","),
                 busca: `${p.nome} ${p.descricao}`.toLowerCase(),
-                // produtos ainda não têm coluna de imagem no model; as URLs antigas
-                // (src/assets/...) morreram com o stack Firebase → placeholder igual à home
-                imagem: "/assets/img/sala.png",
+                // imagem do card: 1ª variante que tiver imagem_url; senão, placeholder
+                imagem: (p.variantes || []).map((v) => v.imagem_url).find(Boolean) || "/assets/img/sala.png",
             };
         });
 
