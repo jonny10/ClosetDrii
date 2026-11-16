@@ -13,30 +13,9 @@
 
 /* (sidebar e grid de conta movidos pra /css/global/profile-sidebar.css) */
 
-/* PAINEL DE CONTEÚDO (DIREITA) */
-.profile-card {
-  background: var(--card);
-  border-radius: var(--radius);
-  padding: 42px;
-  box-shadow: var(--shadow);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-}
+/* (card do painel movido pra /css/global/profile-sidebar.css) */
 
-.profile-title {
-  margin-bottom: 32px;
-}
-
-.profile-title h1 {
-  font-size: 2rem;
-  color: var(--primary);
-  margin-bottom: 8px;
-  font-weight: 700;
-}
-
-.profile-title p {
-  color: var(--muted);
-  font-size: 0.95rem;
-}
+/* (título do painel movido pra /css/global/profile-sidebar.css) */
 
 /* LINHAS DO FORMULÁRIO */
 .input-row {

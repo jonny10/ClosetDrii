@@ -120,6 +120,32 @@
   background: #ffebee;
 }
 
+/* Card do painel de conta (compartilhado entre /profile e /historico) */
+.profile-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 42px;
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+/* Título do painel (compartilhado entre /profile e /historico) */
+.profile-title {
+  margin-bottom: 32px;
+}
+
+.profile-title h1 {
+  font-size: 2rem;
+  color: var(--primary);
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.profile-title p {
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
 /* PAINEL DE CONTEÚDO (DIREITA) */
 .profile-content-area {
   width: 100%;

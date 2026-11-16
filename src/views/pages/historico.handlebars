@@ -1,17 +1,16 @@
 <main class="products-wrapper profile-page-layout">
-  <header class="page-header">
-    <div class="header-content">
+  {{> profile-sidebar pedidosAtivo=true}}
+
+  <section class="profile-content-area">
+  <div class="profile-card">
+    <div class="profile-title">
       <h1>Meus Pedidos</h1>
       <p>
         Acompanhe o status das suas compras e relembre seus looks favoritos
         da Closet Drii.
       </p>
     </div>
-  </header>
-
-  {{> profile-sidebar pedidosAtivo=true}}
-
-  <section class="profile-content-area">
+  </div>
   <div class="history-layout-grid">
     {{#if pedidos.length}}
     <section id="orders-container" class="orders-list-section">
