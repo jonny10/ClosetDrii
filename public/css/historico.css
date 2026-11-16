@@ -59,6 +59,12 @@ body {
   width: 100%;
 }
 
+/* O banner "Meus Pedidos" ocupa a linha inteira acima da sidebar + conteúdo */
+.profile-page-layout > .page-header {
+  grid-column: 1 / -1;
+  margin-bottom: 0;
+}
+
 .orders-list-section {
   display: flex;
   flex-direction: column;

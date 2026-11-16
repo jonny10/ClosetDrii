@@ -1,4 +1,4 @@
-<main class="products-wrapper">
+<main class="products-wrapper profile-page-layout">
   <header class="page-header">
     <div class="header-content">
       <h1>Meus Pedidos</h1>
@@ -9,6 +9,9 @@
     </div>
   </header>
 
+  {{> profile-sidebar pedidosAtivo=true}}
+
+  <section class="profile-content-area">
   <div class="history-layout-grid">
     {{#if pedidos.length}}
     <section id="orders-container" class="orders-list-section">
@@ -79,4 +82,5 @@
     </div>
     {{/if}}
   </div>
+  </section>
 </main>

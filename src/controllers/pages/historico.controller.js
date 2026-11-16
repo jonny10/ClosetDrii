@@ -60,6 +60,8 @@ async function renderHistorico(req, res, next) {
         res.render("pages/historico", {
             title: "Closet Drii | Histórico",
             pageStyle: "historico",
+            pageScript: "profile-sidebar",
+            usuario: req.session.user,
             pedidos,
         });
     } catch (err) {
