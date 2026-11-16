@@ -82,7 +82,7 @@ describe("rotas protegidas (com sessão)", () => {
         return agente;
     }
 
-    it.each(["/profile", "/historico", "/dados"])(
+    it.each(["/profile", "/historico"])(
         "cliente logado acessa %s (requireAuth)",
         async (rota) => {
             const cliente = await agenteLogado("ana.paula@email.com", "123456");
@@ -92,7 +92,7 @@ describe("rotas protegidas (com sessão)", () => {
         }
     );
 
-    it.each(["/vendas", "/contact_adm", "/catalogo"])(
+    it.each(["/vendas", "/contact_adm", "/catalogo", "/dados"])(
         "cliente logado é barrado de %s (requireAdmin) → 302 /",
         async (rota) => {
             const cliente = await agenteLogado("ana.paula@email.com", "123456");
@@ -112,6 +112,24 @@ describe("rotas protegidas (com sessão)", () => {
             expect(res.status).toBe(200);
         }
     );
+
+    it("admin vê o dashboard /dados com KPIs e ranking do seed", async () => {
+        const admin = await agenteLogado("fabricio@email.com", "123456");
+
+        const res = await admin.get("/dados");
+
+        expect(res.status).toBe(200);
+        // KPIs calculados no servidor — venda 8 (cancelada) fica de fora
+        expect(res.text).toContain('id="kpi-faturamento">R$ 3797,80</p>');
+        expect(res.text).toContain('id="kpi-pedidos">14</p>');
+        expect(res.text).toContain('id="kpi-ticket">R$ 271,27</p>');
+        expect(res.text).toContain('id="kpi-pecas">20</p>');
+        // ranking server-rendered, top 1 com medalha e sem <template> de clonagem
+        expect(res.text).toContain("Blusa Cropped Listrada");
+        expect(res.text).toContain('class="position-badge pos-gold">1º</span>');
+        expect(res.text).not.toContain("<template");
+        expect(res.text).not.toContain("Nenhuma venda registrada.");
+    });
 
     it("contact_adm renderiza os cards de contatos no servidor (sem template)", async () => {
         const admin = await agenteLogado("fabricio@email.com", "123456");
