@@ -14,7 +14,6 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "aws4fetch": "^1.0.20",
     "bcrypt": "^6.0.0",
     "dotenv": "^18.0.1",
     "express": "^5.2.1",
