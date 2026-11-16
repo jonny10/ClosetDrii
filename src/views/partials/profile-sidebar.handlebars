@@ -1,0 +1,42 @@
+<aside class="profile-sidebar">
+    <div class="sidebar-user-info">
+        <div class="profile-pic-container">
+            <img
+                id="profile-img"
+                src="/assets/img/logo.png"
+                alt="Foto de perfil"
+            />
+            {{#if fotoEditavel}}
+            <input
+                type="file"
+                id="file-input"
+                accept="image/*"
+                style="display: none"
+            />
+            <div class="edit-overlay" title="Alterar foto">
+                <i class="fas fa-camera"></i>
+            </div>
+            {{/if}}
+        </div>
+        <h2 id="user-name-display">{{usuario.nome}}</h2>
+        <p id="user-email-display">{{usuario.email}}</p>
+    </div>
+
+    <nav class="sidebar-menu">
+        <a
+            href="{{#if dadosAtivo}}#dados{{else}}/profile{{/if}}"
+            class="sidebar-link {{#if dadosAtivo}}active{{/if}}"
+        >
+            <i class="fas fa-user-cog"></i> Meus Dados Pessoais
+        </a>
+        <a
+            href="/historico"
+            class="sidebar-link {{#if pedidosAtivo}}active{{/if}}"
+        >
+            <i class="fas fa-shopping-bag"></i> Meus Pedidos
+        </a>
+        <a href="#" id="sidebar-logout-btn" class="sidebar-link logout-link">
+            <i class="fas fa-sign-out-alt"></i> Sair da Conta
+        </a>
+    </nav>
+</aside>

@@ -113,7 +113,7 @@ function configurarOuvinteCarrinho() {
     const card = target.closest("[data-id-variante]");
     if (!card) return;
 
-    const idVariante = card.dataset.idVariante;
+    const idVariante = Number(card.dataset.idVariante);
     const item = itensCarrinho.find((i) => i.id_variante === idVariante);
     if (!item) return;
 

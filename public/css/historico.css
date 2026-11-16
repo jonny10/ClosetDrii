@@ -19,7 +19,6 @@
 }
 
 body {
-  font-family: 'Outfit', sans-serif;
   background: var(--bg);
   color: var(--text);
 }
@@ -57,6 +56,16 @@ body {
 
 .history-layout-grid {
   width: 100%;
+}
+
+/* Card do título no /historico: sem espaço interno sob o subtítulo e com
+   distância dos cards de pedido (no /profile o título é seguido do form) */
+.profile-card .profile-title {
+  margin-bottom: 0;
+}
+
+.profile-card {
+  margin-bottom: 32px;
 }
 
 .orders-list-section {

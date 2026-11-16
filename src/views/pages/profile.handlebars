@@ -1,40 +1,7 @@
 <main class="products-wrapper profile-page-layout">
-  <aside class="profile-sidebar">
-    <div class="sidebar-user-info">
-      <div class="profile-pic-container">
-        <img
-          id="profile-img"
-          src="/assets/img/logo.png"
-          alt="Foto de perfil"
-        />
-        <input
-          type="file"
-          id="file-input"
-          accept="image/*"
-          style="display: none"
-        />
-        <div class="edit-overlay" title="Alterar foto">
-          <i class="fas fa-camera"></i>
-        </div>
-      </div>
-      <h2 id="user-name-display">{{usuario.nome}}</h2>
-      <p id="user-email-display">{{usuario.email}}</p>
-    </div>
+    {{> profile-sidebar dadosAtivo=true fotoEditavel=true}}
 
-    <nav class="sidebar-menu">
-      <a href="#dados" class="sidebar-link active">
-        <i class="fas fa-user-cog"></i> Meus Dados Pessoais
-      </a>
-      <a href="/historico" class="sidebar-link">
-        <i class="fas fa-shopping-bag"></i> Meus Pedidos
-      </a>
-      <a href="#" id="sidebar-logout-btn" class="sidebar-link logout-link">
-        <i class="fas fa-sign-out-alt"></i> Sair da Conta
-      </a>
-    </nav>
-  </aside>
-
-  <section class="profile-content-area">
+    <section class="profile-content-area">
     <div class="profile-card">
       <div class="profile-title">
         <h1>Dados Pessoais</h1>
