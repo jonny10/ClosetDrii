@@ -203,6 +203,44 @@ describe("rotas protegidas (com sessão)", () => {
         expect(res.text).toMatch(/<option value="F" [^>]*selected>Feminino<\/option>/);
     });
 
+    it("historico renderiza os pedidos do cliente no servidor (sem template)", async () => {
+        const cliente = await agenteLogado("ana.paula@email.com", "123456");
+
+        const res = await cliente.get("/historico");
+
+        expect(res.status).toBe(200);
+        expect(res.text).toContain("Meus Pedidos");
+        // venda 1 do seed (usuario_id 4) renderizada pelo {{#each}} — sem <template> de clonagem
+        expect((res.text.match(/class="order-container-card"/g) || []).length).toBe(1);
+        expect(res.text).not.toContain("template-order-card");
+        expect(res.text).toContain("#0001");
+        // itens com produto/cor/tamanho resolvidos no servidor (cadeia de includes)
+        expect(res.text).toContain("Vestido Floral Midi");
+        expect(res.text).toContain("Blusa Cropped Listrada");
+        expect(res.text).toContain("Rosa");
+        expect(res.text).toContain("Branco");
+        // total, subtotais e unitário em pt-BR
+        expect(res.text).toContain("R$ 269,80");
+        expect(res.text).toContain("R$ 189,90");
+        expect(res.text).toContain("R$ 79,90");
+        // badge com a classe do status da venda (pago)
+        expect(res.text).toContain("status-pago");
+        // quem tem pedidos não vê o empty-state
+        expect(res.text).not.toContain("Você ainda não fez compras");
+    });
+
+    it("historico mostra o empty-state para usuário sem pedidos", async () => {
+        const admin = await agenteLogado("fabricio@email.com", "123456");
+
+        const res = await admin.get("/historico");
+
+        expect(res.status).toBe(200);
+        // fabricio (id 2) não tem vendas no seed → nenhum card e empty-state visível
+        expect((res.text.match(/class="order-container-card"/g) || []).length).toBe(0);
+        expect(res.text).toContain("Você ainda não fez compras");
+        expect(res.text).toContain('href="/produtos"');
+    });
+
     it("após logout, rotas protegidas voltam a redirecionar para /login", async () => {
         const cliente = await agenteLogado("ana.paula@email.com", "123456");
 
