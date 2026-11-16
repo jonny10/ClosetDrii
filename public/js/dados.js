@@ -1,75 +1,67 @@
 import { showSnackbar } from "/js/global/snackbar.js";
 
-// Dashboard (admin) — KPIs e ranking de produtos.
-//
-// Proteção de rota (admin) e cálculo das métricas agora são do back-end
-// (Node/Express + Sequelize). O ideal é o servidor computar os KPIs (via queries/
-// views SQL) e entregá-los prontos. Mantida aqui apenas a INJEÇÃO na tela.
-
+// Dashboard (admin) — KPIs e ranking já vêm renderizados pelo servidor.
+// O botão "Atualizar Dados" busca as métricas frescas em GET /api/admin/dashboard
+// e reinjeta na tela (valores monetários já chegam formatados do back-end).
 document.addEventListener("DOMContentLoaded", () => {
-  // TODO (nova stack): proteger a rota no servidor e carregar as métricas do back-end.
-  processarMetricasDashboard();
-
   document
     .getElementById("btn-refresh-data")
-    ?.addEventListener("click", () => processarMetricasDashboard());
+    ?.addEventListener("click", atualizarDashboard);
 });
 
-// TODO (nova stack): buscar as métricas já computadas do back-end
-//   (ex.: GET /admin/dashboard) e chamar InjetarDadosTela com os valores reais.
-async function processarMetricasDashboard() {
-  // Valores zerados até a integração com a API.
-  const faturamentoTotal = 0;
-  const totalPedidos = 0;
-  const ticketMedio = 0;
-  const totalPecasVendidas = 0;
-  const rankingOrdenado = [];
-
-  InjetarDadosTela(
-    faturamentoTotal,
-    totalPedidos,
-    ticketMedio,
-    totalPecasVendidas,
-    rankingOrdenado,
-  );
-  showSnackbar("Métricas ainda não integradas ao back-end.", "info");
+async function atualizarDashboard() {
+  try {
+    const resp = await fetch("/api/admin/dashboard");
+    if (resp.status === 401) {
+      window.location.href = "/login";
+      return;
+    }
+    const dados = await resp.json().catch(() => ({}));
+    if (!resp.ok) {
+      showSnackbar(
+        dados.error || "Não foi possível atualizar os dados.",
+        "error",
+      );
+      return;
+    }
+    injetarDadosTela(dados);
+    showSnackbar("Dados atualizados.", "success");
+  } catch (err) {
+    console.error(err);
+    showSnackbar("Erro ao conectar com o servidor.", "error");
+  }
 }
 
-function InjetarDadosTela(faturamento, pedidos, ticket, pecas, ranking) {
-  document.getElementById("kpi-faturamento").textContent =
-    faturamento.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-  document.getElementById("kpi-pedidos").textContent = String(pedidos);
-  document.getElementById("kpi-ticket").textContent = ticket.toLocaleString(
-    "pt-BR",
-    { style: "currency", currency: "BRL" },
-  );
-  document.getElementById("kpi-pecas").textContent = String(pecas);
+function injetarDadosTela(dados) {
+  document.getElementById("kpi-faturamento").textContent = dados.faturamento;
+  document.getElementById("kpi-pedidos").textContent = String(dados.pedidos);
+  document.getElementById("kpi-ticket").textContent = dados.ticket_medio;
+  document.getElementById("kpi-pecas").textContent = String(dados.pecas_vendidas);
 
   const tbody = document.getElementById("ranking-products-tbody");
   if (!tbody) return;
 
-  if (ranking.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" class="table-empty">Nenhum dado amostral computado.</td></tr>`;
+  if (!dados.ranking || dados.ranking.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" class="table-empty">Nenhuma venda registrada.</td></tr>`;
     return;
   }
 
   const fragment = document.createDocumentFragment();
 
-  ranking.slice(0, 10).forEach((item, index) => {
-    const tr = document.createElement("tr");
+  dados.ranking.slice(0, 10).forEach((item, index) => {
     const posicao = index + 1;
-
     let medalhaClasse = "";
     if (posicao === 1) medalhaClasse = "pos-gold";
     else if (posicao === 2) medalhaClasse = "pos-silver";
     else if (posicao === 3) medalhaClasse = "pos-bronze";
 
+    const tr = document.createElement("tr");
     tr.innerHTML = `
       <td><span class="position-badge ${medalhaClasse}">${posicao}º</span></td>
       <td><strong>${item.nome}</strong></td>
       <td style="text-align: center; font-weight: 600;">${item.quantidade}</td>
       <td style="text-align: right; color: var(--primary); font-weight: 700;">
-        ${item.receita.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+        ${item.receita}
       </td>
     `;
     fragment.appendChild(tr);

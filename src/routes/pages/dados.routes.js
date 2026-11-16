@@ -3,8 +3,8 @@ const router = express.Router();
 
 const renderDados = require("../../controllers/pages/dados.controller");
 const logger = require("../../middlewares/logger.middleware");
-const requireAuth = require("../../middlewares/require-auth.middleware");
+const requireAdmin = require("../../middlewares/require-admin.middleware");
 
-router.get("/dados", logger, requireAuth, renderDados);
+router.get("/dados", logger, requireAdmin, renderDados);
 
 module.exports = router;

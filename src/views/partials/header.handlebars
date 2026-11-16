@@ -11,9 +11,11 @@
         </a>
 
         <nav class="nav-menu" id="navMenu">
+          {{#unless isAdmin}}
           <a href="/" class="nav-link">Home</a>
           <a href="/produtos" class="nav-link">Produtos</a>
           <a href="/cart" class="nav-link">Carrinho</a>
+          {{/unless}}
 
           {{#if isAdmin}}
           <a href="/dados" class="nav-link">Dados</a>

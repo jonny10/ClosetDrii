@@ -19,7 +19,7 @@
       </div>
       <div class="kpi-details">
         <h3>Faturamento Total</h3>
-        <p id="kpi-faturamento">R$ 0,00</p>
+        <p id="kpi-faturamento">{{kpis.faturamento}}</p>
         <span>Receita bruta acumulada</span>
       </div>
     </div>
@@ -30,7 +30,7 @@
       </div>
       <div class="kpi-details">
         <h3>Pedidos Concluídos</h3>
-        <p id="kpi-pedidos">0</p>
+        <p id="kpi-pedidos">{{kpis.pedidos}}</p>
         <span>Vendas totais registradas</span>
       </div>
     </div>
@@ -41,7 +41,7 @@
       </div>
       <div class="kpi-details">
         <h3>Ticket Médio</h3>
-        <p id="kpi-ticket">R$ 0,00</p>
+        <p id="kpi-ticket">{{kpis.ticket_medio}}</p>
         <span>Média gasta por pedido</span>
       </div>
     </div>
@@ -52,7 +52,7 @@
       </div>
       <div class="kpi-details">
         <h3>Peças Vendidas</h3>
-        <p id="kpi-pecas">0</p>
+        <p id="kpi-pecas">{{kpis.pecas_vendidas}}</p>
         <span>Volume físico de saída</span>
       </div>
     </div>
@@ -75,7 +75,22 @@
               <th style="text-align: right">Total Gerado</th>
             </tr>
           </thead>
-          <tbody id="ranking-products-tbody"></tbody>
+          <tbody id="ranking-products-tbody">
+            {{#if ranking.length}}
+            {{#each ranking}}
+            <tr>
+              <td><span class="position-badge {{medalhaClasse}}">{{posicao}}º</span></td>
+              <td><strong>{{nome}}</strong></td>
+              <td style="text-align: center; font-weight: 600">{{quantidade}}</td>
+              <td style="text-align: right; color: var(--primary); font-weight: 700">
+                {{receita}}
+              </td>
+            </tr>
+            {{/each}}
+            {{else}}
+            <tr><td colspan="4" class="table-empty">Nenhuma venda registrada.</td></tr>
+            {{/if}}
+          </tbody>
         </table>
       </div>
     </div>
